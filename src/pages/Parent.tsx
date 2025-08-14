@@ -3,13 +3,52 @@ import { AuthGuard } from '@/components/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Settings, BarChart3 } from 'lucide-react';
+import { AddChildDialog } from '@/components/AddChildDialog';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 function ParentDashboard() {
   const { user, signOut } = useAuth();
+  const [children, setChildren] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchChildren = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('children')
+        .select(`
+          id,
+          first_name,
+          grade,
+          final_grade,
+          daily_limit_min,
+          used_today_min,
+          birthdate,
+          detected_grade,
+          grade_override
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setChildren(data || []);
+    } catch (error) {
+      console.error('Error fetching children:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchChildren();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const totalLearningTime = children.reduce((sum, child) => sum + child.used_today_min, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -49,7 +88,7 @@ function ParentDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{children.length}</div>
               <p className="text-xs text-muted-foreground">
                 Active children profiles
               </p>
@@ -64,7 +103,7 @@ function ParentDashboard() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0 min</div>
+              <div className="text-2xl font-bold">{totalLearningTime} min</div>
               <p className="text-xs text-muted-foreground">
                 Today's total learning time
               </p>
@@ -95,7 +134,7 @@ function ParentDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button>Add Child Profile</Button>
+              <AddChildDialog onChildAdded={fetchChildren} />
             </CardContent>
           </Card>
         </div>

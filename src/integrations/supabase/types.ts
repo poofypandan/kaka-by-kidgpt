@@ -51,11 +51,18 @@ export type Database = {
       }
       children: {
         Row: {
+          birthdate: string | null
           created_at: string
           daily_limit_min: number
+          daily_minutes_limit: number
+          detected_grade: number | null
+          final_grade: number | null
           first_name: string
           grade: number
+          grade_override: number | null
           id: string
+          last_usage_reset_date: string
+          minutes_used_today: number
           parent_id: string
           streak_days: number
           updated_at: string
@@ -63,11 +70,18 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          birthdate?: string | null
           created_at?: string
           daily_limit_min?: number
+          daily_minutes_limit?: number
+          detected_grade?: number | null
+          final_grade?: number | null
           first_name: string
           grade: number
+          grade_override?: number | null
           id?: string
+          last_usage_reset_date?: string
+          minutes_used_today?: number
           parent_id: string
           streak_days?: number
           updated_at?: string
@@ -75,11 +89,18 @@ export type Database = {
           user_id: string
         }
         Update: {
+          birthdate?: string | null
           created_at?: string
           daily_limit_min?: number
+          daily_minutes_limit?: number
+          detected_grade?: number | null
+          final_grade?: number | null
           first_name?: string
           grade?: number
+          grade_override?: number | null
           id?: string
+          last_usage_reset_date?: string
+          minutes_used_today?: number
           parent_id?: string
           streak_days?: number
           updated_at?: string
@@ -103,46 +124,135 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conversations_child"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           child_id: string
           content: string
+          conversation_id: string | null
           created_at: string
+          flag_reason: string | null
           flag_type: string | null
           flagged: boolean
           id: string
           metadata: Json | null
           role: string
+          sender: string | null
           status: string
         }
         Insert: {
           child_id: string
           content: string
+          conversation_id?: string | null
           created_at?: string
+          flag_reason?: string | null
           flag_type?: string | null
           flagged?: boolean
           id?: string
           metadata?: Json | null
           role: string
+          sender?: string | null
           status?: string
         }
         Update: {
           child_id?: string
           content?: string
+          conversation_id?: string | null
           created_at?: string
+          flag_reason?: string | null
           flag_type?: string | null
           flagged?: boolean
           id?: string
           metadata?: Json | null
           role?: string
+          sender?: string | null
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_messages_conversation"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_child_id_fkey"
             columns: ["child_id"]
             isOneToOne: false
             referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_consents: {
+        Row: {
+          consent_given: boolean
+          consent_text: string | null
+          consent_type: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          parent_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          consent_given?: boolean
+          consent_text?: string | null
+          consent_type: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          parent_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          consent_given?: boolean
+          consent_text?: string | null
+          consent_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          parent_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_parent_consents_parent"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
             referencedColumns: ["id"]
           },
         ]
