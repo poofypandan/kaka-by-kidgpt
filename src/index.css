@@ -256,6 +256,35 @@ All colors MUST be HSL.
   box-shadow: var(--shadow-red-soft);
 }
 
+/* Indonesian cultural patterns and animations */
+.border-rainbow {
+  border-image: linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6, #ec4899) 1;
+}
+
+@keyframes rainbow-glow {
+  0% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+  16% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.3); }
+  33% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+  66% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+  83% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+  100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+}
+
+.animate-rainbow-glow {
+  animation: rainbow-glow 3s infinite;
+}
+
+/* Batik-inspired patterns */
+.bg-batik-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.1) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s infinite;
+}
+
 @layer base {
   * {
     @apply border-border;
