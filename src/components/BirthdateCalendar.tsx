@@ -31,13 +31,12 @@ export function BirthdateCalendar({ selected, onSelect, className }: BirthdateCa
         selected={selected}
         onSelect={onSelect}
         defaultMonth={selected ?? defaultMonth}
-        /** DayPicker props forwarded by our Calendar wrapper */
         captionLayout="dropdown-buttons"
         fromYear={currentYear - 20}
         toYear={currentYear}
         showOutsideDays={false}
         disabled={(date) => date > today || date < new Date('1900-01-01')}
-        className="p-3 pointer-events-auto"
+        className="pointer-events-auto"
       />
     </div>
   );
