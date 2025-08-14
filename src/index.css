@@ -8,27 +8,27 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Warm Kaka theme colors for kid-safe, cozy feel */
+    /* Warm Kaka theme colors for kid-safe, cozy feel - Enhanced contrast */
     --background: 210 20% 98%;
-    --foreground: 25 40% 15%;
+    --foreground: 25 40% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 40% 15%;
+    --card-foreground: 25 40% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 40% 15%;
+    --popover-foreground: 25 40% 10%;
 
     --primary: 30 80% 55%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 340 30% 92%;
-    --secondary-foreground: 25 40% 15%;
+    --secondary-foreground: 25 40% 10%;
 
     --muted: 210 15% 95%;
-    --muted-foreground: 25 20% 45%;
+    --muted-foreground: 25 30% 30%;
 
     --accent: 35 70% 75%;
-    --accent-foreground: 25 40% 15%;
+    --accent-foreground: 25 40% 10%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
@@ -39,17 +39,24 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
     
-    /* Indonesian flag colors */
-    --red-indonesia: 0 100% 45%;
-    --white-indonesia: 0 0% 98%;
-    --gold-indonesia: 45 100% 50%;
+    /* Indonesian flag colors - Enhanced contrast */
+    --red-indonesia: 0 85% 35%;
+    --white-indonesia: 0 0% 100%;
+    --gold-indonesia: 45 90% 40%;
     
-    /* Kid-friendly gradients with Indonesian theme */
+    /* Text contrast colors */
+    --text-primary: 25 40% 10%;
+    --text-secondary: 25 25% 25%;
+    --text-muted: 25 15% 40%;
+    --text-light: 0 0% 95%;
+    
+    /* Kid-friendly gradients with Indonesian theme - Enhanced contrast */
     --gradient-warm: linear-gradient(135deg, hsl(30 80% 55%), hsl(35 70% 75%));
     --gradient-gentle: linear-gradient(180deg, hsl(210 30% 98%), hsl(340 20% 98%));
     --gradient-pastel: linear-gradient(45deg, hsl(210 40% 95%), hsl(340 30% 95%), hsl(50 40% 95%));
-    --gradient-indonesia: linear-gradient(135deg, hsl(0 100% 45%), hsl(0 90% 55%));
+    --gradient-indonesia: linear-gradient(135deg, hsl(0 85% 35%), hsl(0 80% 45%));
     --gradient-indonesia-soft: linear-gradient(135deg, hsl(0 80% 85%), hsl(45 80% 85%));
+    --gradient-user-message: linear-gradient(135deg, hsl(210 100% 95%), hsl(220 100% 97%));
     
     /* Shadows with warm tones */
     --shadow-soft: 0 4px 20px -6px hsl(30 80% 55% / 0.15);
@@ -207,12 +214,17 @@ All colors MUST be HSL.
   @apply rounded-xl border-2 bg-white px-4 py-4 text-lg 
          transition-all duration-200 
          focus:ring-2 focus:ring-red-500/20 focus:scale-[1.02]
-         hover:border-red-500/50 placeholder:text-gray-400;
-  border-color: hsl(0 100% 45% / 0.3);
+         hover:border-red-500/50;
+  border-color: hsl(0 85% 35% / 0.3);
+  color: hsl(var(--text-primary));
+}
+
+.kid-friendly-input-large::placeholder {
+  color: hsl(var(--text-muted));
 }
 
 .kid-friendly-input-large:focus {
-  border-color: hsl(0 100% 45%);
+  border-color: hsl(0 85% 35%);
 }
 
 .kid-friendly-button {

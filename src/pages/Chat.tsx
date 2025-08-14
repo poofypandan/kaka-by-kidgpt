@@ -218,7 +218,7 @@ export default function Chat() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-red-indonesia">Kaka by KidGPT</h1>
-                <p className="text-sm text-gray-600">Sahabat belajar terbaik!</p>
+                <p className="text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>Sahabat belajar terbaik!</p>
               </div>
             </div>
             <div className="flex space-x-2">
@@ -260,13 +260,19 @@ export default function Chat() {
                    {/* Message Bubble */}
                    <Card className={`p-4 max-w-full ${
                      message.sender === 'kaka'
-                       ? 'bg-gradient-indonesia text-white shadow-red-soft'
-                       : 'bg-white-indonesia border-2 border-red-indonesia/20 shadow-soft'
-                   }`}>
+                       ? 'shadow-red-soft'
+                       : 'border-2 border-red-indonesia/20 shadow-soft'
+                   }`} style={{
+                     background: message.sender === 'kaka' 
+                       ? 'var(--gradient-indonesia)'
+                       : 'var(--gradient-user-message)'
+                   }}>
                      <div className="flex items-start justify-between">
                        <p className={`text-base leading-relaxed flex-1 ${
-                         message.sender === 'kaka' ? 'text-white' : 'text-gray-800'
-                       }`}>
+                         message.sender === 'kaka' ? 'text-white' : ''
+                       }`} style={{
+                         color: message.sender === 'kaka' ? 'hsl(var(--text-light))' : 'hsl(var(--text-primary))'
+                       }}>
                          {message.content}
                        </p>
                        {/* Safety indicator */}
@@ -276,20 +282,20 @@ export default function Chat() {
                          }`} />
                        )}
                      </div>
-                     <div className="flex items-center justify-between mt-2">
-                       <p className={`text-xs ${
-                         message.sender === 'kaka' ? 'text-white/80' : 'text-gray-500'
-                       }`}>
+                       <div className="flex items-center justify-between mt-2">
+                         <p className="text-xs" style={{
+                           color: message.sender === 'kaka' ? 'hsl(var(--text-light) / 0.8)' : 'hsl(var(--text-muted))'
+                         }}>
                          {message.timestamp.toLocaleTimeString('id-ID', { 
                            hour: '2-digit', 
                            minute: '2-digit' 
                          })}
                        </p>
-                       {/* Safety score indicator (development only) */}
-                       {process.env.NODE_ENV === 'development' && message.safetyScore && (
-                         <span className={`text-xs ${
-                           message.sender === 'kaka' ? 'text-white/60' : 'text-gray-400'
-                         }`}>
+                         {/* Safety score indicator (development only) */}
+                         {process.env.NODE_ENV === 'development' && message.safetyScore && (
+                           <span className="text-xs" style={{
+                             color: message.sender === 'kaka' ? 'hsl(var(--text-light) / 0.6)' : 'hsl(var(--text-muted))'
+                           }}>
                            Safety: {message.safetyScore}
                          </span>
                        )}
@@ -306,7 +312,10 @@ export default function Chat() {
                   <div className="w-10 h-10 rounded-full bg-gradient-indonesia flex items-center justify-center">
                     <WavingKoala />
                   </div>
-                  <Card className="bg-gradient-indonesia text-white p-4 shadow-red-soft">
+                   <Card className="p-4 shadow-red-soft" style={{ 
+                     background: 'var(--gradient-indonesia)',
+                     color: 'hsl(var(--text-light))'
+                   }}>
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                       <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -396,11 +405,11 @@ export default function Chat() {
           </div>
           
           <div className="mt-3 text-center">
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center justify-center space-x-2 text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>
               <Shield className="h-4 w-4 text-blue-500" />
               <p>💡 Tips: Tanya apa saja tentang pelajaran, hobi, atau hal menarik lainnya!</p>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs mt-1" style={{ color: 'hsl(var(--text-muted))' }}>
               Kaka selalu menjaga keamanan percakapan untuk melindungi anak-anak
             </p>
           </div>
