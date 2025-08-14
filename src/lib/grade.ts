@@ -48,6 +48,25 @@ export function detectGradeFromBirthdate(
   };
 }
 
+export function calculateAge(birthdate: Date): number {
+  const today = new Date();
+  let age = today.getFullYear() - birthdate.getFullYear();
+  const monthDiff = today.getMonth() - birthdate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdate.getDate())) {
+    age--;
+  }
+  
+  return age;
+}
+
+export function getGradeFromAge(age: number): number {
+  // Indonesian elementary school: typically ages 6-12 for grades 1-6
+  if (age < 6) return 1;
+  if (age > 12) return 6;
+  return Math.min(Math.max(age - 5, 1), 6);
+}
+
 export function getGradeDisplayText(grade: number): string {
   return `Kelas ${grade}`;
 }
