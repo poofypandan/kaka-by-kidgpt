@@ -8,7 +8,7 @@ interface KoalaProps {
 // Floating Koala - gentle and welcoming
 export const FloatingKoala = ({ className = "", style }: KoalaProps) => (
   <div className={`koala-floating ${className}`} style={style}>
-    <svg viewBox="0 0 100 120" className="w-16 h-20 drop-shadow-sm">
+    <svg viewBox="0 0 100 120" className="w-20 h-24 drop-shadow-sm">
       {/* Body */}
       <ellipse cx="50" cy="85" rx="20" ry="25" fill="hsl(25 15% 75%)" />
       
@@ -47,7 +47,7 @@ export const FloatingKoala = ({ className = "", style }: KoalaProps) => (
 // Waving Koala - friendly greeting
 export const WavingKoala = ({ className = "", style }: KoalaProps) => (
   <div className={`koala-swaying ${className}`} style={style}>
-    <svg viewBox="0 0 100 120" className="w-14 h-18 drop-shadow-sm">
+    <svg viewBox="0 0 100 120" className="w-18 h-22 drop-shadow-sm">
       {/* Body */}
       <ellipse cx="50" cy="85" rx="18" ry="22" fill="hsl(25 15% 75%)" />
       
@@ -86,7 +86,7 @@ export const WavingKoala = ({ className = "", style }: KoalaProps) => (
 // Sleeping Koala - peaceful and calm
 export const SleepingKoala = ({ className = "", style }: KoalaProps) => (
   <div className={`koala-sleeping ${className}`} style={style}>
-    <svg viewBox="0 0 100 120" className="w-12 h-16 drop-shadow-sm">
+    <svg viewBox="0 0 100 120" className="w-16 h-20 drop-shadow-sm">
       {/* Body */}
       <ellipse cx="50" cy="85" rx="16" ry="20" fill="hsl(25 15% 75%)" />
       
