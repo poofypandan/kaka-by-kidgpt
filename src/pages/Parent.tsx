@@ -48,23 +48,27 @@ function ParentDashboard() {
     await signOut();
   };
 
-  const totalLearningTime = children.reduce((sum, child) => sum + child.used_today_min, 0);
+  const totalLearningTime = children.reduce((sum, child) => sum + (child.used_today_min || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
               K
             </div>
-            <span className="font-semibold">Kaka</span>
+            <div>
+              <span className="font-bold text-lg">Kaka</span>
+              <p className="text-xs text-muted-foreground">Pembelajaran yang Aman</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Hello, {user?.email}
-            </span>
-            <Button variant="outline" onClick={handleSignOut}>
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium">Hello!</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
+            </div>
+            <Button variant="outline" onClick={handleSignOut} size="sm">
               Logout
             </Button>
           </div>
@@ -125,12 +129,67 @@ function ParentDashboard() {
           </Card>
         </div>
 
+        {/* Children List */}
+        {children.length > 0 && (
+          <div className="mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profil Anak</CardTitle>
+                <CardDescription>
+                  Kelola profil dan pengaturan untuk setiap anak
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {children.map((child) => (
+                    <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                          {child.first_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{child.first_name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>Kelas {child.final_grade || child.grade}</span>
+                            {child.grade_override && (
+                              <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">
+                                Manual
+                              </span>
+                            )}
+                            <span>•</span>
+                            <span>{child.daily_limit_min} menit/hari</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right text-sm">
+                          <p className="font-medium">{child.used_today_min || 0} min</p>
+                          <p className="text-muted-foreground">hari ini</p>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          Chat
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Getting Started Section */}
         <div className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Getting Started</CardTitle>
+              <CardTitle>
+                {children.length === 0 ? "Getting Started" : "Tambah Anak Lain"}
+              </CardTitle>
               <CardDescription>
-                Set up your first child's profile to begin monitoring their learning journey
+                {children.length === 0 
+                  ? "Set up your first child's profile to begin monitoring their learning journey"
+                  : "Tambahkan profil anak lainnya untuk monitoring yang lebih lengkap"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -4,12 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BirthdateCalendar } from '@/components/BirthdateCalendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { CalendarIcon, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { AlertCircle, Calendar } from 'lucide-react';
 import { detectGradeFromBirthdate, getGradeDisplayText, isValidGradeOverride } from '@/lib/grade';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,13 +16,19 @@ interface AddChildDialogProps {
 export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
-  const [birthdate, setBirthdate] = useState<Date>();
+  const [birthdate, setBirthdate] = useState('');
   const [dailyLimit, setDailyLimit] = useState('60');
   const [gradeOverride, setGradeOverride] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const gradeDetection = birthdate ? detectGradeFromBirthdate(birthdate) : null;
+  // Generate date limits for HTML5 date input
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const maxDate = today.toISOString().split('T')[0]; // Today
+  const minDate = `${currentYear - 20}-01-01`; // 20 years ago
+
+  const gradeDetection = birthdate ? detectGradeFromBirthdate(new Date(birthdate)) : null;
   const canSubmit = firstName.trim() && birthdate && gradeDetection?.grade;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,18 +37,23 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
 
     setLoading(true);
     try {
-      // Get current user's parent record
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data: parents, error: parentError } = await supabase
+      // Get or create parent record
+      let parentId: string;
+      
+      const { data: existingParent } = await supabase
         .from('parents')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (parentError) {
-        // Create parent record if it doesn't exist
+      if (existingParent) {
+        parentId = existingParent.id;
+      } else {
+        // Create parent record
         const { data: userRecord } = await supabase
           .from('users')
           .select('id')
@@ -66,60 +72,60 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
           .single();
 
         if (createParentError) throw createParentError;
-        
-        // Create child record
-        const override = gradeOverride ? parseInt(gradeOverride) : null;
-        const { error: childError } = await supabase
-          .from('children')
-          .insert({
-            user_id: userRecord.id,
-            parent_id: newParent.id,
-            first_name: firstName.trim(),
-            grade: gradeDetection.grade, // Use existing grade field
-            birthdate: format(birthdate!, 'yyyy-MM-dd'),
-            detected_grade: gradeDetection.grade,
-            grade_override: override && isValidGradeOverride(override) ? override : null,
-            daily_limit_min: parseInt(dailyLimit), // Use existing field name
-            daily_minutes_limit: parseInt(dailyLimit)
-          });
+        parentId = newParent.id;
+      }
 
-        if (childError) throw childError;
-      } else {
-        // Create child record with existing parent
-        const { data: userRecord } = await supabase
-          .from('users')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .single();
+      // Get user record for child creation
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .single();
 
-        if (!userRecord) throw new Error('User record not found');
+      if (!userRecord) throw new Error('User record not found');
 
-        const override = gradeOverride ? parseInt(gradeOverride) : null;
-        const { error: childError } = await supabase
-          .from('children')
-          .insert({
-            user_id: userRecord.id,
-            parent_id: parents.id,
-            first_name: firstName.trim(),
-            grade: gradeDetection.grade, // Use existing grade field
-            birthdate: format(birthdate!, 'yyyy-MM-dd'),
-            detected_grade: gradeDetection.grade,
-            grade_override: override && isValidGradeOverride(override) ? override : null,
-            daily_limit_min: parseInt(dailyLimit), // Use existing field name
-            daily_minutes_limit: parseInt(dailyLimit)
-          });
+      // Create child record
+      const override = gradeOverride ? parseInt(gradeOverride) : null;
+      const finalGrade = override && isValidGradeOverride(override) ? override : gradeDetection.grade;
+      
+      const { data: newChild, error: childError } = await supabase
+        .from('children')
+        .insert({
+          user_id: userRecord.id,
+          parent_id: parentId,
+          first_name: firstName.trim(),
+          grade: finalGrade,
+          birthdate: birthdate,
+          detected_grade: gradeDetection.grade,
+          grade_override: override && isValidGradeOverride(override) ? override : null,
+          daily_limit_min: parseInt(dailyLimit),
+          daily_minutes_limit: parseInt(dailyLimit)
+        })
+        .select('*')
+        .single();
 
-        if (childError) throw childError;
+      if (childError) throw childError;
+
+      // Create default conversation for the child
+      const { error: conversationError } = await supabase
+        .from('conversations')
+        .insert({
+          child_id: newChild.id,
+          title: `Chat dengan Kaka - ${firstName}`
+        });
+
+      if (conversationError) {
+        console.warn('Failed to create default conversation:', conversationError);
       }
 
       toast({
-        title: "Profil anak berhasil ditambahkan!",
-        description: `${firstName} telah ditambahkan dengan ${getGradeDisplayText(gradeOverride ? parseInt(gradeOverride) : gradeDetection.grade)}.`
+        title: "Profil anak berhasil ditambahkan! 🎉",
+        description: `${firstName} telah ditambahkan dengan ${getGradeDisplayText(finalGrade)}. Batas waktu harian: ${dailyLimit} menit.`
       });
 
       // Reset form
       setFirstName('');
-      setBirthdate(undefined);
+      setBirthdate('');
       setDailyLimit('60');
       setGradeOverride('');
       setOpen(false);
@@ -140,63 +146,76 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Tambah Profil Anak</Button>
+        <Button className="w-full">
+          <Calendar className="mr-2 h-4 w-4" />
+          Tambah Profil Anak
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Tambah Profil Anak</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">Tambah Profil Anak</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* First Name Field */}
           <div className="space-y-2">
-            <Label htmlFor="firstName">Nama Depan *</Label>
+            <Label htmlFor="firstName" className="text-sm font-medium">
+              Nama Depan *
+            </Label>
             <Input
               id="firstName"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Masukkan nama depan anak"
+              placeholder="Masukkan nama depan anak (contoh: Jardani)"
               required
+              className="h-11"
             />
+            {firstName.trim() && firstName.length < 2 && (
+              <p className="text-sm text-amber-600">Nama minimal 2 karakter</p>
+            )}
           </div>
 
+          {/* Birth Date Field */}
           <div className="space-y-2">
-            <Label>Tanggal Lahir *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !birthdate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {birthdate ? format(birthdate, 'dd MMMM yyyy', { locale: id }) : "Pilih tanggal lahir"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <BirthdateCalendar
-                  selected={birthdate}
-                  onSelect={setBirthdate}
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="birthdate" className="text-sm font-medium">
+              Tanggal Lahir *
+            </Label>
+            <Input
+              id="birthdate"
+              type="date"
+              value={birthdate}
+              onChange={(e) => setBirthdate(e.target.value)}
+              min={minDate}
+              max={maxDate}
+              required
+              className="h-11"
+            />
+            <p className="text-xs text-muted-foreground">
+              Pilih tanggal lahir untuk deteksi kelas otomatis
+            </p>
           </div>
 
+          {/* Grade Detection Display */}
           {gradeDetection && (
-            <div className="space-y-2">
-              <Label>Deteksi Kelas</Label>
-              <div className="p-3 bg-muted rounded-lg">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Deteksi Kelas</Label>
+              <div className="p-4 bg-muted/50 rounded-lg border">
                 {gradeDetection.grade ? (
-                  <div className="space-y-2">
-                    <p className="text-sm">
-                      🎯 Kaka mendeteksi: <strong>{getGradeDisplayText(gradeDetection.grade)}</strong>
-                    </p>
-                    <p className="text-xs text-muted-foreground">{gradeDetection.reason}</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <p className="text-sm font-medium">
+                        Kaka mendeteksi: <span className="text-primary font-semibold">{getGradeDisplayText(gradeDetection.grade)}</span>
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground pl-4">{gradeDetection.reason}</p>
                     
-                    <div className="space-y-1">
-                      <Label htmlFor="gradeOverride" className="text-xs">Ubah kelas (opsional)</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="gradeOverride" className="text-xs font-medium">
+                        Ubah kelas (opsional)
+                      </Label>
                       <Select value={gradeOverride} onValueChange={setGradeOverride}>
-                        <SelectTrigger className="h-8">
+                        <SelectTrigger className="h-9">
                           <SelectValue placeholder="Gunakan deteksi otomatis" />
                         </SelectTrigger>
                         <SelectContent>
@@ -211,7 +230,7 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-amber-600">
+                  <div className="flex items-center gap-2 text-amber-700">
                     <AlertCircle className="h-4 w-4" />
                     <p className="text-sm">{gradeDetection.reason}</p>
                   </div>
@@ -220,8 +239,11 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
             </div>
           )}
 
+          {/* Daily Time Limit Field */}
           <div className="space-y-2">
-            <Label htmlFor="dailyLimit">Batas Waktu Harian (menit)</Label>
+            <Label htmlFor="dailyLimit" className="text-sm font-medium">
+              Batas Waktu Harian (menit)
+            </Label>
             <Input
               id="dailyLimit"
               type="number"
@@ -230,17 +252,28 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
               min="10"
               max="180"
               required
+              className="h-11"
             />
             <p className="text-xs text-muted-foreground">
-              Disarankan: 30-60 menit per hari untuk anak usia sekolah
+              <span className="font-medium">Disarankan:</span> 30-60 menit per hari untuk anak usia sekolah
             </p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          {/* Form Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
               Batal
             </Button>
-            <Button type="submit" disabled={!canSubmit || loading}>
+            <Button 
+              type="submit" 
+              disabled={!canSubmit || loading}
+              className="min-w-[100px]"
+            >
               {loading ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </div>
