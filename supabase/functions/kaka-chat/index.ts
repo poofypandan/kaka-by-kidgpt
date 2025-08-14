@@ -13,35 +13,53 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Enhanced safety filtering for Indonesian children
-const INAPPROPRIATE_PATTERNS = [
-  // Violence & Safety
-  /kekerasan|violence|darah|blood|bunuh|kill|mati|death|berkelahi|fight/i,
-  /bahaya|dangerous|racun|poison|senjata|weapon|pisau|knife/i,
+// Comprehensive Indonesian safety filtering patterns
+const INDONESIAN_PROFANITY = [
+  // Explicit profanity
+  /\b(anjing|bangsat|babi|kampret|kontol|memek|ngentot|peler|tai|tetek|titit|penis|vagina)\b/i,
+  /\b(brengsek|bajingan|keparat|sialan|bangke|jelek amat|tolol|bodoh banget|goblok)\b/i,
+  /\b(fuck|shit|damn|bitch|asshole|crap|wtf|omg|goddamn)\b/i,
   
-  // Adult Content
-  /dewasa|adult|seks|sex|telanjang|naked|ciuman|kiss|pacaran|dating/i,
-  /porno|porn|vulgar|cabul|jorok|dirty/i,
+  // Sexual content
+  /\b(seks|sex|telanjang|naked|bugil|ml|making love|bercinta|pacaran|pacar|ciuman|kiss)\b/i,
+  /\b(porn|porno|xxx|masturbasi|onani|ngocok|colmek|oral|anal)\b/i,
   
-  // Substances
-  /narkoba|drugs|mabuk|drunk|rokok|cigarette|alkohol|alcohol|minum-minuman keras/i,
+  // Violence and harm
+  /\b(bunuh|kill|mati|death|berkelahi|fight|pukul|hit|tendang|kick|tusuk|stab)\b/i,
+  /\b(darah|blood|luka|wound|sakit|hurt|bahaya|dangerous|racun|poison)\b/i,
+  /\b(senjata|weapon|pistol|gun|pisau|knife|bom|bomb|ledak|explode)\b/i,
   
-  // Sensitive Topics
-  /politik|political|partai|party|pilihan|election|demo|demonstration/i,
-  /agama|religion|tuhan|god|allah|yesus|buddha|hindu/i,
+  // Substances and illegal activities
+  /\b(narkoba|drugs|ganja|weed|marijuana|kokain|cocaine|heroin|ekstasi|ecstasy)\b/i,
+  /\b(mabuk|drunk|minum|alkohol|alcohol|bir|beer|wine|vodka|whiskey)\b/i,
+  /\b(rokok|cigarette|ngerokok|smoking|vape|vaping|tembakau|tobacco)\b/i,
   
-  // Financial & Commercial
-  /uang|money|jual|beli|buy|sell|bisnis|business|investasi|investment/i,
-  /kredit|credit|pinjam|loan|hutang|debt|bayar|payment/i,
+  // Adult topics
+  /\b(hamil|pregnant|melahirkan|birth|menstruasi|period|haid|payudara|breast)\b/i,
+  /\b(dewasa|adult|18\+|mature|gambling|judi|taruhan|bet)\b/i,
   
-  // Personal Information
-  /alamat|address|nomor hp|phone number|email|password|nama lengkap|full name/i,
-  /sekolah dimana|which school|rumah dimana|where do you live/i,
+  // Personal information risks
+  /\b(alamat|address|rumah|home|sekolah|school|kelas|class|guru|teacher)\b/i,
+  /\b(nomor hp|phone|telepon|wa|whatsapp|ig|instagram|fb|facebook)\b/i,
+  /\b(email|password|pin|atm|rekening|account|uang|money)\b/i,
   
-  // Inappropriate Social
-  /benci|hate|bodoh|stupid|jelek|ugly|gendut|fat|kurus|skinny/i,
-  /marah|angry|sedih banget|very sad|takut|scared|stress/i,
+  // Emotional distress
+  /\b(sedih banget|very sad|depresi|depression|bunuh diri|suicide|mati aja|want to die)\b/i,
+  /\b(takut|scared|nightmare|mimpi buruk|hantu|ghost|setan|devil)\b/i,
+  /\b(marah|angry|benci|hate|kesal|annoyed|stress|tertekan|depressed)\b/i,
 ];
+
+// Categorized inappropriate patterns for better classification
+const CONTENT_CATEGORIES = {
+  violence: /kekerasan|violence|darah|blood|bunuh|kill|mati|death|berkelahi|fight|senjata|weapon/i,
+  sexual: /seks|sex|telanjang|naked|ciuman|kiss|pacaran|dating|porn|porno/i,
+  substances: /narkoba|drugs|mabuk|drunk|rokok|cigarette|alkohol|alcohol/i,
+  personal_info: /alamat|address|nomor hp|phone|password|email|sekolah|school/i,
+  profanity: /anjing|bangsat|babi|kampret|fuck|shit|damn|bitch/i,
+  emotional_distress: /sedih banget|takut|scared|marah|angry|depresi|depression/i,
+  adult_topics: /dewasa|adult|hamil|pregnant|judi|gambling|18\+/i,
+  harmful_advice: /cara bunuh|how to kill|cara menyakiti|how to hurt|cara mencuri|how to steal/i
+};
 
 // Age-appropriate content filters by grade level
 const GRADE_FILTERS = {
@@ -83,45 +101,80 @@ CONTOH RESPONS:
 
 Ingat: Keamanan anak adalah prioritas utama. Jika ragu, lebih baik tidak menjawab dan alihkan ke topik yang aman.`;
 
-// Enhanced content analysis
-function calculateSafetyScore(text: string): { score: number; reasons: string[] } {
+// Enhanced comprehensive safety analysis
+function calculateSafetyScore(text: string): { 
+  score: number; 
+  reasons: string[]; 
+  categories: string[];
+  escalationLevel: 'none' | 'notify' | 'block' | 'urgent';
+} {
   let score = 100;
   const reasons: string[] = [];
+  const categories: string[] = [];
   
-  // Check against inappropriate patterns
-  for (const pattern of INAPPROPRIATE_PATTERNS) {
-    if (pattern.test(text)) {
-      score -= 30;
-      reasons.push(`Pattern detected: ${pattern.source}`);
-    }
-  }
-  
-  // Check for personal information requests
-  const personalInfoPatterns = [
-    /siapa nama/i, /dimana rumah/i, /nomor telepon/i, /umur berapa/i,
-    /sekolah mana/i, /alamat/i, /password/i, /email/i
-  ];
-  
-  for (const pattern of personalInfoPatterns) {
+  // Check against comprehensive Indonesian profanity
+  for (const pattern of INDONESIAN_PROFANITY) {
     if (pattern.test(text)) {
       score -= 40;
-      reasons.push('Personal information request detected');
+      reasons.push('Inappropriate language detected');
+      categories.push('profanity');
+      break; // Stop after first match to avoid over-penalizing
     }
   }
   
-  // Check for emotional distress indicators
-  const distressPatterns = [
-    /sedih banget/i, /takut/i, /marah/i, /stress/i, /tidak suka/i
+  // Check against categorized content
+  for (const [category, pattern] of Object.entries(CONTENT_CATEGORIES)) {
+    if (pattern.test(text)) {
+      let penalty = 30;
+      
+      // Higher penalties for more serious categories
+      if (category === 'violence' || category === 'emotional_distress') {
+        penalty = 50;
+      } else if (category === 'sexual' || category === 'harmful_advice') {
+        penalty = 45;
+      } else if (category === 'personal_info') {
+        penalty = 40;
+      }
+      
+      score -= penalty;
+      reasons.push(`${category.replace('_', ' ')} content detected`);
+      categories.push(category);
+    }
+  }
+  
+  // Check for patterns suggesting harm or danger
+  const highRiskPatterns = [
+    /cara bunuh|how to kill|cara menyakiti|how to hurt/i,
+    /bunuh diri|suicide|mati aja|want to die/i,
+    /alamat lengkap|full address|nomor hp|phone number/i,
+    /password|pin|atm|kartu kredit|credit card/i
   ];
   
-  for (const pattern of distressPatterns) {
+  for (const pattern of highRiskPatterns) {
     if (pattern.test(text)) {
-      score -= 20;
-      reasons.push('Emotional distress indicator detected');
+      score -= 60;
+      reasons.push('High-risk content detected');
+      categories.push('high_risk');
     }
   }
   
-  return { score: Math.max(0, score), reasons };
+  // Determine escalation level
+  let escalationLevel: 'none' | 'notify' | 'block' | 'urgent' = 'none';
+  
+  if (categories.includes('violence') || categories.includes('emotional_distress') || categories.includes('high_risk')) {
+    escalationLevel = 'urgent';
+  } else if (categories.includes('sexual') || categories.includes('harmful_advice') || score < 30) {
+    escalationLevel = 'block';
+  } else if (categories.includes('profanity') || categories.includes('personal_info') || score < 60) {
+    escalationLevel = 'notify';
+  }
+  
+  return { 
+    score: Math.max(0, score), 
+    reasons,
+    categories,
+    escalationLevel
+  };
 }
 
 function containsInappropriateContent(text: string): boolean {
@@ -214,25 +267,31 @@ serve(async (req) => {
 
     console.log('Processing message for child:', childId, 'Message:', message);
 
-    // Enhanced safety analysis
+    // Enhanced safety analysis with escalation
     const safetyAnalysis = calculateSafetyScore(message);
-    const { score: safetyScore, reasons } = safetyAnalysis;
+    const { score: safetyScore, reasons, categories, escalationLevel } = safetyAnalysis;
     
-    // Log user message
+    // Log user message with detailed safety data
     await logConversation(childId, message, 'user', safetyScore, false);
     
-    // Pre-message safety check
+    // Pre-message safety check with escalation handling
     if (containsInappropriateContent(message)) {
-      console.log('Inappropriate content detected:', message, 'Reasons:', reasons);
+      console.log('Inappropriate content detected:', message, 'Categories:', categories, 'Escalation:', escalationLevel);
       
       const safeResponse = generateSafeResponse(reasons.join(', '));
       
       // Log filtered response
       await logConversation(childId, safeResponse, 'assistant', 100, true, reasons.join(', '));
       
-      // Notify parent if severity is high
-      if (safetyScore < 50 && childId) {
-        await notifyParent(childId, `Pesan anak mengandung konten yang difilter: "${message}"`, 'high');
+      // Handle escalation based on severity
+      if (childId) {
+        if (escalationLevel === 'urgent') {
+          await notifyParent(childId, `🚨 URGENT: Pesan anak mengandung konten berbahaya yang memerlukan perhatian segera: "${message.substring(0, 100)}..."`, 'critical');
+        } else if (escalationLevel === 'block') {
+          await notifyParent(childId, `⚠️ Pesan anak diblokir karena konten tidak pantas: "${message.substring(0, 100)}..."`, 'high');
+        } else if (escalationLevel === 'notify') {
+          await notifyParent(childId, `📝 Pesan anak mengandung konten yang perlu diperhatikan: "${message.substring(0, 100)}..."`, 'medium');
+        }
       }
       
       return new Response(JSON.stringify({ 

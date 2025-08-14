@@ -4,8 +4,10 @@ import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Settings, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, Settings, BarChart3, Shield } from 'lucide-react';
 import { AddChildDialog } from '@/components/AddChildDialog';
+import SafetyDashboard from '@/components/SafetyDashboard';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -97,9 +99,17 @@ function ParentDashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Parent Dashboard</h1>
           <p className="text-muted-foreground">
-            Monitor and manage your children's learning activities
+            Monitor and manage your children's learning activities and safety
           </p>
         </div>
+
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="safety">Safety Dashboard</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
@@ -135,14 +145,15 @@ function ParentDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Settings
+                Safety Status
               </CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
+              <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
-                Manage Settings
-              </Button>
+              <div className="text-2xl font-bold text-green-600">Active</div>
+              <p className="text-xs text-muted-foreground">
+                All conversations monitored
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -196,25 +207,31 @@ function ParentDashboard() {
           </div>
         )}
 
-        {/* Getting Started Section */}
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {children.length === 0 ? "Getting Started" : "Tambah Anak Lain"}
-              </CardTitle>
-              <CardDescription>
-                {children.length === 0 
-                  ? "Set up your first child's profile to begin monitoring their learning journey"
-                  : "Tambahkan profil anak lainnya untuk monitoring yang lebih lengkap"
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AddChildDialog onChildAdded={fetchChildren} />
-            </CardContent>
-          </Card>
-        </div>
+          {/* Getting Started Section */}
+          <div className="mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {children.length === 0 ? "Getting Started" : "Tambah Anak Lain"}
+                </CardTitle>
+                <CardDescription>
+                  {children.length === 0 
+                    ? "Set up your first child's profile to begin monitoring their learning journey"
+                    : "Tambahkan profil anak lainnya untuk monitoring yang lebih lengkap"
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AddChildDialog onChildAdded={fetchChildren} />
+              </CardContent>
+            </Card>
+          </div>
+          </TabsContent>
+
+          <TabsContent value="safety">
+            <SafetyDashboard />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
