@@ -10,13 +10,13 @@ import { Users, Settings, BarChart3, Shield } from 'lucide-react';
 import { AddChildDialog } from '@/components/AddChildDialog';
 import SafetyDashboard from '@/components/SafetyDashboard';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useChildren } from '@/hooks/useChildren';
 
 function ParentDashboard() {
   const { user, signOut, loading: authLoading } = useAuth();
   const { isDemoMode, demoData, exitDemo } = useDemoMode();
+  const { children: fetchedChildren, loading, refreshChildren } = useChildren();
   const [children, setChildren] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   
   // Add loading state and auth check
   if (authLoading) {
@@ -31,44 +31,14 @@ function ParentDashboard() {
     return <Navigate to="/auth" replace />;
   }
 
-  const fetchChildren = async () => {
-    // Use demo data if in demo mode
+  useEffect(() => {
+    // Use demo data if in demo mode, otherwise use fetched children
     if (isDemoMode) {
       setChildren(demoData.children);
-      setLoading(false);
-      return;
+    } else {
+      setChildren(fetchedChildren);
     }
-
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('children')
-        .select(`
-          id,
-          first_name,
-          grade,
-          final_grade,
-          daily_limit_min,
-          used_today_min,
-          birthdate,
-          detected_grade,
-          grade_override
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setChildren(data || []);
-    } catch (error) {
-      console.error('Error fetching children:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchChildren();
-  }, [user, isDemoMode]);
+  }, [isDemoMode, demoData.children, fetchedChildren]);
 
   const handleSignOut = async () => {
     if (isDemoMode) {
@@ -238,7 +208,7 @@ function ParentDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AddChildDialog onChildAdded={fetchChildren} />
+                <AddChildDialog onChildAdded={refreshChildren} />
               </CardContent>
             </Card>
           </div>

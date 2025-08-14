@@ -67,17 +67,25 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
       // Calculate age and grade for smart defaults
       const today = new Date();
       const age = today.getFullYear() - formData.birthDate!.getFullYear();
-      const grade = Math.max(1, Math.min(12, age - 5)); // Estimate grade from age
+      const estimatedGrade = Math.max(1, Math.min(12, age - 5)); // Rough estimate: age 6 = grade 1
       
-      // Save to database using the function we created
-      const { data, error } = await supabase.rpc('create_child_profile', {
+      // Save to database using the Supabase function
+      const { data: childId, error } = await supabase.rpc('create_child_profile', {
         p_first_name: formData.firstName.trim(),
-        p_birthdate: formData.birthDate.toISOString().split('T')[0],
-        p_grade: grade,
+        p_birthdate: formData.birthDate!.toISOString().split('T')[0], // Convert to YYYY-MM-DD
+        p_grade: estimatedGrade,
         p_daily_limit_min: formData.timeLimit
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!childId) {
+        throw new Error('Failed to create child profile');
+      }
+
+      toast.success(`Profil ${formData.firstName} berhasil dibuat!`);
 
       // Reset form
       setFormData({
@@ -95,7 +103,9 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
       // Refresh parent data
       onChildAdded();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+      console.error('Error creating child profile:', err);
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan profil");
+      toast.error("Gagal menyimpan profil anak");
     } finally {
       setIsSubmitting(false);
     }

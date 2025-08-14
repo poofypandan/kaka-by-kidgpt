@@ -1,28 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { useChildMode } from '@/components/ChildModeContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, ArrowLeft, Users, Star } from 'lucide-react';
 import { calculateAge } from '@/lib/grade';
-
-interface Child {
-  id: string;
-  first_name: string;
-  grade: number;
-  birthdate?: string;
-  daily_limit_min: number;
-  used_today_min: number;
-}
+import { useChildren, type Child } from '@/hooks/useChildren';
 
 export default function ChildSelection() {
   const { user, loading: authLoading } = useAuth();
   const { setChildMode, setChildren } = useChildMode();
-  const [children, setChildrenList] = useState<Child[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { children, loading, refreshChildren } = useChildren();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,38 +21,9 @@ export default function ChildSelection() {
       return;
     }
     
-    if (user) {
-      fetchChildren();
-    }
-  }, [user, authLoading, navigate]);
-
-  const fetchChildren = async () => {
-    try {
-      // Query children table with proper parent association
-      const { data, error } = await supabase
-        .from('children')
-        .select(`
-          id,
-          first_name,
-          birthdate,
-          grade,
-          daily_limit_min,
-          used_today_min,
-          created_at
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const childrenData = data || [];
-      setChildrenList(childrenData);
-      setChildren(childrenData);
-    } catch (error) {
-      console.error('Error fetching children:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Set children in context when they change
+    setChildren(children);
+  }, [user, authLoading, navigate, children, setChildren]);
 
   const handleChildSelect = (child: Child) => {
     setChildMode(child);
