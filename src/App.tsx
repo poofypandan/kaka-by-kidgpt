@@ -25,10 +25,10 @@ const App = () => (
     <DemoProvider>
       <AuthProvider>
         <TooltipProvider>
-          <ChildModeProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ChildModeProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -65,8 +65,8 @@ const App = () => (
                 } />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </ChildModeProvider>
+            </ChildModeProvider>
+          </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
     </DemoProvider>
