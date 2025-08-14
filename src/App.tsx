@@ -15,6 +15,7 @@ import ChildHome from "./pages/ChildHome";
 import Chat from "./pages/Chat";
 import Activities from "./pages/Activities";
 import ParentSettings from "./pages/ParentSettings";
+import ChildProfileSuccess from "./pages/ChildProfileSuccess";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -61,6 +62,11 @@ const App = () => (
                 <Route path="/settings" element={
                   <AuthGuard>
                     <ParentSettings />
+                  </AuthGuard>
+                } />
+                <Route path="/child-profile-success" element={
+                  <AuthGuard>
+                    <ChildProfileSuccess />
                   </AuthGuard>
                 } />
                 <Route path="*" element={<NotFound />} />

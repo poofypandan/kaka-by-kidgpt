@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ interface AddChildDialogProps {
 }
 
 export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -61,6 +63,10 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
     setIsSubmitting(true);
 
     try {
+      // Calculate age for smart defaults
+      const today = new Date();
+      const age = today.getFullYear() - formData.birthDate!.getFullYear();
+      
       // For now, simulate success since we don't have the actual API
       await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -71,11 +77,13 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
         timeLimit: 60,
       });
 
-      // Show success message
-      toast.success("Profil anak berhasil ditambahkan!");
-
-      // Close modal and refresh parent
+      // Close modal
       setIsOpen(false);
+      
+      // Navigate to success screen with child data
+      navigate(`/child-profile-success?name=${encodeURIComponent(formData.firstName)}&age=${age}`);
+      
+      // Refresh parent data
       onChildAdded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
