@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -120,6 +120,88 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_filter_settings: {
+        Row: {
+          child_id: string
+          created_at: string
+          custom_blocked_words: string[] | null
+          filter_level: string | null
+          id: string
+          log_all_conversations: boolean | null
+          parent_notification_threshold: number | null
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          custom_blocked_words?: string[] | null
+          filter_level?: string | null
+          id?: string
+          log_all_conversations?: boolean | null
+          parent_notification_threshold?: number | null
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          custom_blocked_words?: string[] | null
+          filter_level?: string | null
+          id?: string
+          log_all_conversations?: boolean | null
+          parent_notification_threshold?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_filter_settings_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: true
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_logs: {
+        Row: {
+          child_id: string | null
+          created_at: string
+          filter_reason: string | null
+          filtered_content: boolean | null
+          id: string
+          message_content: string
+          message_type: string
+          safety_score: number | null
+        }
+        Insert: {
+          child_id?: string | null
+          created_at?: string
+          filter_reason?: string | null
+          filtered_content?: boolean | null
+          id?: string
+          message_content: string
+          message_type: string
+          safety_score?: number | null
+        }
+        Update: {
+          child_id?: string | null
+          created_at?: string
+          filter_reason?: string | null
+          filtered_content?: boolean | null
+          id?: string
+          message_content?: string
+          message_type?: string
+          safety_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_logs_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
             referencedColumns: ["id"]
           },
         ]
@@ -250,6 +332,64 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fk_parent_consents_parent"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_notifications: {
+        Row: {
+          child_id: string
+          conversation_log_id: string | null
+          created_at: string
+          id: string
+          message: string
+          notification_type: string
+          parent_id: string
+          read_at: string | null
+          severity: string | null
+        }
+        Insert: {
+          child_id: string
+          conversation_log_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          notification_type: string
+          parent_id: string
+          read_at?: string | null
+          severity?: string | null
+        }
+        Update: {
+          child_id?: string
+          conversation_log_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          notification_type?: string
+          parent_id?: string
+          read_at?: string | null
+          severity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_notifications_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_notifications_conversation_log_id_fkey"
+            columns: ["conversation_log_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_notifications_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "parents"

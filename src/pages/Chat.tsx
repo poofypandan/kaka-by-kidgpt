@@ -4,17 +4,20 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { Mic, Send, Home, Settings } from 'lucide-react';
+import { Mic, Send, Home, Settings, Shield, AlertTriangle } from 'lucide-react';
 import { FloatingKoala, WavingKoala, TwinkleStar, FloatingHeart } from '@/components/KoalaCharacters';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { quickSafetyCheck, shouldWarnUser, getSafetyWarningMessage } from '@/lib/contentFilter';
 
 interface Message {
   id: string;
   content: string;
   sender: 'user' | 'kaka';
   timestamp: Date;
+  safetyScore?: number;
+  filtered?: boolean;
 }
 
 export default function Chat() {
@@ -31,6 +34,8 @@ export default function Chat() {
   const [inputMessage, setInputMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isKakaSpeaking, setIsKakaSpeaking] = useState(false);
+  const [showSafetyWarning, setShowSafetyWarning] = useState(false);
+  const [safetyWarningMessage, setSafetyWarningMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
@@ -60,21 +65,38 @@ export default function Chat() {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
+    // Pre-message safety check
+    const safetyCheck = quickSafetyCheck(inputMessage);
+    if (shouldWarnUser(inputMessage)) {
+      setShowSafetyWarning(true);
+      setSafetyWarningMessage(getSafetyWarningMessage(safetyCheck.severity));
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputMessage,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      safetyScore: safetyCheck.score
     };
 
     setMessages(prev => [...prev, userMessage]);
     const currentMessage = inputMessage;
     setInputMessage('');
     setIsKakaSpeaking(true);
+    setShowSafetyWarning(false);
 
     try {
+      // Get current child ID (you'll need to implement this based on your auth system)
+      const currentUser = user;
+      const childId = currentUser?.id; // Adjust this based on your data structure
+
       const { data, error } = await supabase.functions.invoke('kaka-chat', {
-        body: { message: currentMessage }
+        body: { 
+          message: currentMessage,
+          childId: childId 
+        }
       });
 
       if (error) {
@@ -86,17 +108,24 @@ export default function Chat() {
         id: (Date.now() + 1).toString(),
         content: data.response || "Maaf, Kaka sedang istirahat sebentar. Coba lagi nanti ya! 😊",
         sender: 'kaka',
-        timestamp: new Date()
+        timestamp: new Date(),
+        safetyScore: data.safetyScore,
+        filtered: data.filtered
       };
       
       setMessages(prev => [...prev, kakaMessage]);
 
-      // Show toast if content was filtered
+      // Show enhanced toast if content was filtered
       if (data.filtered) {
         toast({
           title: "🛡️ Pesan diamankan",
           description: "Kaka hanya membahas hal-hal yang aman dan menyenangkan!",
         });
+      }
+
+      // Show safety score for transparency (only in development)
+      if (process.env.NODE_ENV === 'development' && data.safetyScore) {
+        console.log('Safety Score:', data.safetyScore);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -228,26 +257,44 @@ export default function Chat() {
                     )}
                   </div>
 
-                  {/* Message Bubble */}
-                  <Card className={`p-4 max-w-full ${
-                    message.sender === 'kaka'
-                      ? 'bg-gradient-indonesia text-white shadow-red-soft'
-                      : 'bg-white-indonesia border-2 border-red-indonesia/20 shadow-soft'
-                  }`}>
-                    <p className={`text-base leading-relaxed ${
-                      message.sender === 'kaka' ? 'text-white' : 'text-gray-800'
-                    }`}>
-                      {message.content}
-                    </p>
-                    <p className={`text-xs mt-2 ${
-                      message.sender === 'kaka' ? 'text-white/80' : 'text-gray-500'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString('id-ID', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </p>
-                  </Card>
+                   {/* Message Bubble */}
+                   <Card className={`p-4 max-w-full ${
+                     message.sender === 'kaka'
+                       ? 'bg-gradient-indonesia text-white shadow-red-soft'
+                       : 'bg-white-indonesia border-2 border-red-indonesia/20 shadow-soft'
+                   }`}>
+                     <div className="flex items-start justify-between">
+                       <p className={`text-base leading-relaxed flex-1 ${
+                         message.sender === 'kaka' ? 'text-white' : 'text-gray-800'
+                       }`}>
+                         {message.content}
+                       </p>
+                       {/* Safety indicator */}
+                       {message.filtered && (
+                         <Shield className={`h-4 w-4 ml-2 flex-shrink-0 ${
+                           message.sender === 'kaka' ? 'text-white/80' : 'text-blue-500'
+                         }`} />
+                       )}
+                     </div>
+                     <div className="flex items-center justify-between mt-2">
+                       <p className={`text-xs ${
+                         message.sender === 'kaka' ? 'text-white/80' : 'text-gray-500'
+                       }`}>
+                         {message.timestamp.toLocaleTimeString('id-ID', { 
+                           hour: '2-digit', 
+                           minute: '2-digit' 
+                         })}
+                       </p>
+                       {/* Safety score indicator (development only) */}
+                       {process.env.NODE_ENV === 'development' && message.safetyScore && (
+                         <span className={`text-xs ${
+                           message.sender === 'kaka' ? 'text-white/60' : 'text-gray-400'
+                         }`}>
+                           Safety: {message.safetyScore}
+                         </span>
+                       )}
+                     </div>
+                   </Card>
                 </div>
               </div>
             ))}
@@ -275,6 +322,37 @@ export default function Chat() {
 
         {/* Input Area */}
         <div className="p-4 bg-white/95 backdrop-blur-sm border-t-2 border-red-indonesia/20">
+          {/* Safety Warning */}
+          {showSafetyWarning && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-yellow-800 font-medium">Peringatan Keamanan</p>
+                <p className="text-sm text-yellow-700 mt-1">{safetyWarningMessage}</p>
+                <div className="flex space-x-2 mt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setInputMessage('');
+                      setShowSafetyWarning(false);
+                    }}
+                    className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                  >
+                    Hapus Pesan
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowSafetyWarning(false)}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    Lanjutkan
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex space-x-3">
             {/* Voice Input Button */}
             <Button
@@ -293,7 +371,13 @@ export default function Chat() {
             <div className="flex-1 flex space-x-3">
               <Input
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={(e) => {
+                  setInputMessage(e.target.value);
+                  // Reset safety warning when user starts typing again
+                  if (showSafetyWarning) {
+                    setShowSafetyWarning(false);
+                  }
+                }}
                 onKeyPress={handleKeyPress}
                 placeholder="Ketik pesan atau tekan tombol mikrofon untuk bicara..."
                 className="kid-friendly-input-large text-lg"
@@ -312,8 +396,12 @@ export default function Chat() {
           </div>
           
           <div className="mt-3 text-center">
-            <p className="text-sm text-gray-600">
-              💡 Tips: Tanya apa saja tentang pelajaran, hobi, atau hal menarik lainnya!
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+              <Shield className="h-4 w-4 text-blue-500" />
+              <p>💡 Tips: Tanya apa saja tentang pelajaran, hobi, atau hal menarik lainnya!</p>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Kaka selalu menjaga keamanan percakapan untuk melindungi anak-anak
             </p>
           </div>
         </div>
