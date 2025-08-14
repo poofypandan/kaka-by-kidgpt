@@ -204,10 +204,15 @@ All colors MUST be HSL.
 }
 
 .kid-friendly-input-large {
-  @apply rounded-xl border-2 border-red-indonesia/30 bg-white px-4 py-4 text-lg 
+  @apply rounded-xl border-2 bg-white px-4 py-4 text-lg 
          transition-all duration-200 
-         focus:border-red-indonesia focus:ring-2 focus:ring-red-indonesia/20 focus:scale-[1.02]
-         hover:border-red-indonesia/50 placeholder:text-gray-400;
+         focus:ring-2 focus:ring-red-500/20 focus:scale-[1.02]
+         hover:border-red-500/50 placeholder:text-gray-400;
+  border-color: hsl(0 100% 45% / 0.3);
+}
+
+.kid-friendly-input-large:focus {
+  border-color: hsl(0 100% 45%);
 }
 
 .kid-friendly-button {
