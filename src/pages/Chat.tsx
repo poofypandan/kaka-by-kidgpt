@@ -8,6 +8,7 @@ import { Mic, Send, Home, Settings } from 'lucide-react';
 import { FloatingKoala, WavingKoala, TwinkleStar, FloatingHeart } from '@/components/KoalaCharacters';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -67,31 +68,54 @@ export default function Chat() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage;
     setInputMessage('');
     setIsKakaSpeaking(true);
 
-    // Simulate Kaka's response
-    setTimeout(() => {
-      const kakaResponses = [
-        "Pertanyaan yang bagus! 🌟 Aku senang bisa membantu kamu belajar!",
-        "Wah, kamu anak yang pintar! 🎉 Mari kita jelajahi topik ini bersama!",
-        "Aku suka sekali dengan rasa ingin tahu kamu! 🤗 Ayo kita pelajari lebih lanjut!",
-        "Hebat! Kamu sudah bertanya hal yang sangat menarik! 🚀",
-        "Kamu tahu tidak? Pertanyaan seperti ini yang membuat belajar jadi menyenangkan! ✨"
-      ];
+    try {
+      const { data, error } = await supabase.functions.invoke('kaka-chat', {
+        body: { message: currentMessage }
+      });
 
-      const randomResponse = kakaResponses[Math.floor(Math.random() * kakaResponses.length)];
-      
+      if (error) {
+        console.error('Error calling Kaka:', error);
+        throw error;
+      }
+
       const kakaMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: randomResponse,
+        content: data.response || "Maaf, Kaka sedang istirahat sebentar. Coba lagi nanti ya! 😊",
         sender: 'kaka',
         timestamp: new Date()
       };
-
+      
       setMessages(prev => [...prev, kakaMessage]);
+
+      // Show toast if content was filtered
+      if (data.filtered) {
+        toast({
+          title: "🛡️ Pesan diamankan",
+          description: "Kaka hanya membahas hal-hal yang aman dan menyenangkan!",
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Maaf, Kaka sedang istirahat sebentar. Coba lagi nanti ya! 😊",
+        sender: 'kaka',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+
+      toast({
+        title: "Oops!",
+        description: "Koneksi terputus. Coba lagi ya!",
+        variant: "destructive"
+      });
+    } finally {
       setIsKakaSpeaking(false);
-    }, 1000 + Math.random() * 2000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
