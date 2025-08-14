@@ -112,10 +112,10 @@ export default function Index() {
             <CardContent>
               <Button 
                 size="lg" 
+                onClick={() => window.location.href = '/chat'}
                 className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground font-medium"
-                disabled
               >
-                Mulai Chat dengan Kaka (Segera Hadir)
+                Mulai Chat dengan Kaka! 🐨
               </Button>
             </CardContent>
           </Card>
