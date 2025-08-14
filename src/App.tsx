@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChildModeProvider } from "@/components/ChildModeContext";
+import { DemoProvider } from "@/hooks/useDemoMode";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Parent from "./pages/Parent";
@@ -21,52 +22,54 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <ChildModeProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/parent" element={
-                <AuthGuard>
-                  <Parent />
-                </AuthGuard>
-              } />
-              <Route path="/child-selection" element={
-                <AuthGuard>
-                  <ChildSelection />
-                </AuthGuard>
-              } />
-              <Route path="/child-home" element={
-                <AuthGuard>
-                  <ChildHome />
-                </AuthGuard>
-              } />
-              <Route path="/chat" element={
-                <AuthGuard>
-                  <Chat />
-                </AuthGuard>
-              } />
-              <Route path="/activities" element={
-                <AuthGuard>
-                  <Activities />
-                </AuthGuard>
-              } />
-              <Route path="/settings" element={
-                <AuthGuard>
-                  <ParentSettings />
-                </AuthGuard>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </ChildModeProvider>
-      </TooltipProvider>
-    </AuthProvider>
+    <DemoProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <ChildModeProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/parent" element={
+                  <AuthGuard>
+                    <Parent />
+                  </AuthGuard>
+                } />
+                <Route path="/child-selection" element={
+                  <AuthGuard>
+                    <ChildSelection />
+                  </AuthGuard>
+                } />
+                <Route path="/child-home" element={
+                  <AuthGuard>
+                    <ChildHome />
+                  </AuthGuard>
+                } />
+                <Route path="/chat" element={
+                  <AuthGuard>
+                    <Chat />
+                  </AuthGuard>
+                } />
+                <Route path="/activities" element={
+                  <AuthGuard>
+                    <Activities />
+                  </AuthGuard>
+                } />
+                <Route path="/settings" element={
+                  <AuthGuard>
+                    <ParentSettings />
+                  </AuthGuard>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ChildModeProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </DemoProvider>
   </QueryClientProvider>
 );
 

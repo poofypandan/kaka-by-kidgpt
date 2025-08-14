@@ -2,12 +2,62 @@ import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import { Loader2, BookOpen, Users, Shield } from 'lucide-react';
+import DemoMode from '@/components/DemoMode';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Index() {
   const { user, loading, signOut } = useAuth();
+  const { isDemoMode, demoUserType, startDemo } = useDemoMode();
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [showDemoMode, setShowDemoMode] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        setUserProfile(profile);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    checkProfile();
+  }, [user]);
+
+  // Check if we should show demo mode
+  useEffect(() => {
+    if (!loading && !user && !isDemoMode) {
+      // Show demo mode if no user and not in demo
+      setShowDemoMode(true);
+    }
+  }, [loading, user, isDemoMode]);
+
+  // Handle demo mode
+  if (isDemoMode && demoUserType) {
+    if (demoUserType === 'parent') {
+      return <Navigate to="/parent" replace />;
+    } else {
+      return <Navigate to="/child-home" replace />;
+    }
+  }
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -15,9 +65,31 @@ export default function Index() {
     );
   }
 
-  // Redirect to auth if not logged in
+  // Show demo mode if no user
+  if (showDemoMode && !user) {
+    return <DemoMode onStartDemo={startDemo} />;
+  }
+
+  // If no user, redirect to auth
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // If user exists but no profile, redirect to onboarding
+  if (!userProfile) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // If user has profile but no role, redirect to onboarding
+  if (!userProfile.role) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // Redirect based on role
+  if (userProfile.role === 'PARENT') {
+    return <Navigate to="/parent" replace />;
+  } else if (userProfile.role === 'CHILD') {
+    return <Navigate to="/child-home" replace />;
   }
 
   const handleSignOut = async () => {

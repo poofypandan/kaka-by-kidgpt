@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChildMode } from '@/components/ChildModeContext';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,17 +12,23 @@ import { toast } from 'sonner';
 
 export default function ChildHome() {
   const { currentChild, exitChildMode, isChildMode, autoLogoutMinutes, lastActivity } = useChildMode();
+  const { isDemoMode, demoData, exitDemo } = useDemoMode();
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [pin, setPin] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Allow demo mode to bypass child mode checks
+    if (isDemoMode) {
+      return;
+    }
+    
     if (!isChildMode || !currentChild) {
       navigate('/child-selection');
       return;
     }
-  }, [isChildMode, currentChild, navigate]);
+  }, [isChildMode, currentChild, navigate, isDemoMode]);
 
   // Timer display
   useEffect(() => {
@@ -95,7 +102,12 @@ export default function ChildHome() {
     if (pin === '1234') {
       setShowPinDialog(false);
       setPin('');
-      exitChildMode();
+      if (isDemoMode) {
+        exitDemo();
+        navigate('/parent');
+      } else {
+        exitChildMode();
+      }
     } else {
       toast.error('PIN salah! Coba lagi.');
       setPin('');
@@ -105,7 +117,12 @@ export default function ChildHome() {
   const handleEmergencyCall = () => {
     // In a real app, this would trigger emergency protocols
     toast.success('Memanggil orang tua...');
-    exitChildMode();
+    if (isDemoMode) {
+      exitDemo();
+      navigate('/parent');
+    } else {
+      exitChildMode();
+    }
   };
 
   const formatTimeLeft = (minutes: number) => {
@@ -114,7 +131,10 @@ export default function ChildHome() {
     return hrs > 0 ? `${hrs}j ${mins}m` : `${mins}m`;
   };
 
-  if (!currentChild) return null;
+  // Get current child from demo data or child mode
+  const displayChild = isDemoMode ? demoData.children[0] : currentChild;
+  
+  if (!displayChild && !isDemoMode) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -130,7 +150,7 @@ export default function ChildHome() {
               />
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                  Halo, {currentChild.first_name}! 👋
+                  Halo, {displayChild?.first_name || 'Teman'}! 👋
                 </h1>
                 <p className="text-gray-600">Mau belajar apa hari ini?</p>
               </div>
@@ -174,7 +194,7 @@ export default function ChildHome() {
         {/* Welcome section */}
         <div className="text-center mb-8">
           <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 flex items-center justify-center text-white text-4xl font-bold shadow-xl animate-pulse">
-            {currentChild.first_name.charAt(0).toUpperCase()}
+            {displayChild?.first_name?.charAt(0).toUpperCase() || 'K'}
           </div>
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
             Selamat Datang di Dunia Kaka! 🌟

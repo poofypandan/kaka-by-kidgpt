@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { FloatingKoala, WavingKoala, SleepingKoala, TwinkleStar, FloatingHeart, FloatingCloud } from '@/components/KoalaCharacters';
 
 export default function Auth() {
   const { user, loading, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
+  const { isDemoMode, exitDemo } = useDemoMode();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,6 +109,21 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-accent/20 p-4 relative overflow-hidden">
+      {/* Back to Demo Button */}
+      {isDemoMode && (
+        <Button
+          variant="ghost"
+          className="absolute top-4 left-4 z-30"
+          onClick={() => {
+            exitDemo();
+            navigate('/');
+          }}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Kembali ke Demo
+        </Button>
+      )}
+
       {/* Animated Background Elements */}
       <TwinkleStar className="absolute top-12 left-12 z-0" style={{ animationDelay: '0s' }} />
       <TwinkleStar className="absolute top-20 right-20 z-0" style={{ animationDelay: '1s' }} />

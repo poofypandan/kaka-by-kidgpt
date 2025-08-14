@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
@@ -11,6 +12,7 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children, roles, requireProfile = false }: AuthGuardProps) {
   const { user, loading } = useAuth();
+  const { isDemoMode, demoData } = useDemoMode();
 
   if (loading) {
     return (
@@ -18,6 +20,11 @@ export function AuthGuard({ children, roles, requireProfile = false }: AuthGuard
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // Allow demo mode to bypass auth
+  if (isDemoMode && demoData.user) {
+    return <>{children}</>;
   }
 
   if (!user) {

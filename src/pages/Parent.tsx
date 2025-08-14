@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import { AuthGuard } from '@/components/AuthGuard';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -13,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 function ParentDashboard() {
   const { user, signOut, loading: authLoading } = useAuth();
+  const { isDemoMode, demoData, exitDemo } = useDemoMode();
   const [children, setChildren] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -30,6 +32,13 @@ function ParentDashboard() {
   }
 
   const fetchChildren = async () => {
+    // Use demo data if in demo mode
+    if (isDemoMode) {
+      setChildren(demoData.children);
+      setLoading(false);
+      return;
+    }
+
     if (!user) return;
     
     try {
@@ -59,10 +68,15 @@ function ParentDashboard() {
 
   useEffect(() => {
     fetchChildren();
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const handleSignOut = async () => {
-    await signOut();
+    if (isDemoMode) {
+      exitDemo();
+      window.location.href = '/';
+    } else {
+      await signOut();
+    }
   };
 
   const totalLearningTime = children.reduce((sum, child) => sum + (child.used_today_min || 0), 0);
@@ -86,7 +100,9 @@ function ParentDashboard() {
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium">Hello!</p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
+              <p className="text-xs text-muted-foreground">
+                {isDemoMode ? 'Demo Parent' : user?.email}
+              </p>
             </div>
             <Button variant="outline" onClick={handleSignOut} size="sm">
               Logout
