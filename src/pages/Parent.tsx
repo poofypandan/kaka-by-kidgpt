@@ -72,7 +72,7 @@ function ParentDashboard() {
           <div className="flex items-center gap-3">
             <div className="h-10 w-20 flex items-center justify-center">
               <img 
-                src="/lovable-uploads/c9575da1-627c-4282-9065-7dceb619e982.png" 
+                src="/lovable-uploads/3c6d677b-f566-47d7-8a38-d8f86401741b.png" 
                 alt="Kakak Logo" 
                 className="w-full h-full object-contain"
               />

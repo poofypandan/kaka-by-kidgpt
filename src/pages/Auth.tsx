@@ -109,7 +109,7 @@ export default function Auth() {
         <CardHeader className="text-center space-y-3">
           <div className="mx-auto w-32 h-16 flex items-center justify-center">
             <img 
-              src="/lovable-uploads/c9575da1-627c-4282-9065-7dceb619e982.png" 
+              src="/lovable-uploads/3c6d677b-f566-47d7-8a38-d8f86401741b.png" 
               alt="Kakak Logo" 
               className="w-full h-full object-contain"
             />
