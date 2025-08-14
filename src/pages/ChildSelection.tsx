@@ -38,9 +38,18 @@ export default function ChildSelection() {
 
   const fetchChildren = async () => {
     try {
+      // Query children table with proper parent association
       const { data, error } = await supabase
         .from('children')
-        .select('*')
+        .select(`
+          id,
+          first_name,
+          birthdate,
+          grade,
+          daily_limit_min,
+          used_today_min,
+          created_at
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

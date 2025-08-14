@@ -64,6 +64,7 @@ export default function ChildProfileSuccess() {
   ];
 
   const handleStartChat = () => {
+    // Navigate to child selection, which will now properly show the new child
     navigate('/child-selection');
   };
 

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "./ui/DatePicker";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddChildDialogProps {
   onChildAdded: () => void;
@@ -63,12 +64,20 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
     setIsSubmitting(true);
 
     try {
-      // Calculate age for smart defaults
+      // Calculate age and grade for smart defaults
       const today = new Date();
       const age = today.getFullYear() - formData.birthDate!.getFullYear();
+      const grade = Math.max(1, Math.min(12, age - 5)); // Estimate grade from age
       
-      // For now, simulate success since we don't have the actual API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save to database using the function we created
+      const { data, error } = await supabase.rpc('create_child_profile', {
+        p_first_name: formData.firstName.trim(),
+        p_birthdate: formData.birthDate.toISOString().split('T')[0],
+        p_grade: grade,
+        p_daily_limit_min: formData.timeLimit
+      });
+
+      if (error) throw error;
 
       // Reset form
       setFormData({
