@@ -494,6 +494,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_child_profile: {
+        Args: {
+          p_birthdate: string
+          p_daily_limit_min?: number
+          p_first_name: string
+          p_grade: number
+        }
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
