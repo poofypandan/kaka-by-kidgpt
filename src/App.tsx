@@ -16,6 +16,8 @@ import Chat from "./pages/Chat";
 import Activities from "./pages/Activities";
 import ParentSettings from "./pages/ParentSettings";
 import ChildProfileSuccess from "./pages/ChildProfileSuccess";
+import FamilyAuth from "./pages/FamilyAuth";
+import FamilyDashboard from "./pages/FamilyDashboard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -33,7 +35,13 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/family-auth" element={<FamilyAuth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/family-dashboard" element={
+                  <AuthGuard>
+                    <FamilyDashboard />
+                  </AuthGuard>
+                } />
                 <Route path="/parent" element={
                   <AuthGuard>
                     <Parent />

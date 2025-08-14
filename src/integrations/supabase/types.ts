@@ -49,6 +49,44 @@ export type Database = {
           },
         ]
       }
+      child_sessions: {
+        Row: {
+          child_id: string
+          duration_minutes: number | null
+          ended_at: string | null
+          id: string
+          last_activity: string | null
+          safety_alerts_count: number | null
+          started_at: string
+        }
+        Insert: {
+          child_id: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          last_activity?: string | null
+          safety_alerts_count?: number | null
+          started_at?: string
+        }
+        Update: {
+          child_id?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          last_activity?: string | null
+          safety_alerts_count?: number | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_sessions_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       children: {
         Row: {
           birthdate: string | null
@@ -234,6 +272,258 @@ export type Database = {
             columns: ["child_id"]
             isOneToOne: false
             referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      families: {
+        Row: {
+          created_at: string
+          id: string
+          invite_code: string | null
+          invite_expires_at: string | null
+          name: string
+          primary_parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_code?: string | null
+          invite_expires_at?: string | null
+          name: string
+          primary_parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_code?: string | null
+          invite_expires_at?: string | null
+          name?: string
+          primary_parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      family_conversations: {
+        Row: {
+          child_id: string
+          created_at: string
+          family_id: string
+          flag_reason: string | null
+          flagged: boolean | null
+          id: string
+          message_content: string
+          parent_reviewed: boolean | null
+          safety_score: number | null
+          sender: string
+          session_id: string | null
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          family_id: string
+          flag_reason?: string | null
+          flagged?: boolean | null
+          id?: string
+          message_content: string
+          parent_reviewed?: boolean | null
+          safety_score?: number | null
+          sender: string
+          session_id?: string | null
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          family_id?: string
+          flag_reason?: string | null
+          flagged?: boolean | null
+          id?: string
+          message_content?: string
+          parent_reviewed?: boolean | null
+          safety_score?: number | null
+          sender?: string
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_conversations_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_conversations_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_conversations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "child_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_members: {
+        Row: {
+          age: number | null
+          content_filter_level: string | null
+          created_at: string
+          daily_time_limit: number | null
+          family_id: string
+          id: string
+          islamic_content_enabled: boolean | null
+          name: string
+          phone: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          content_filter_level?: string | null
+          created_at?: string
+          daily_time_limit?: number | null
+          family_id: string
+          id?: string
+          islamic_content_enabled?: boolean | null
+          name: string
+          phone?: string | null
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          content_filter_level?: string | null
+          created_at?: string
+          daily_time_limit?: number | null
+          family_id?: string
+          id?: string
+          islamic_content_enabled?: boolean | null
+          name?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_notifications: {
+        Row: {
+          child_id: string | null
+          created_at: string
+          family_id: string
+          id: string
+          message: string
+          notification_type: string
+          read_by_primary: boolean | null
+          read_by_secondary: boolean | null
+          severity: string | null
+          title: string
+        }
+        Insert: {
+          child_id?: string | null
+          created_at?: string
+          family_id: string
+          id?: string
+          message: string
+          notification_type: string
+          read_by_primary?: boolean | null
+          read_by_secondary?: boolean | null
+          severity?: string | null
+          title: string
+        }
+        Update: {
+          child_id?: string | null
+          created_at?: string
+          family_id?: string
+          id?: string
+          message?: string
+          notification_type?: string
+          read_by_primary?: boolean | null
+          read_by_secondary?: boolean | null
+          severity?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_notifications_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_notifications_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_settings: {
+        Row: {
+          created_at: string
+          default_child_time_limit: number | null
+          emergency_contacts: Json | null
+          family_id: string
+          family_pin: string | null
+          id: string
+          notification_preferences: Json | null
+          updated_at: string
+          whatsapp_notifications: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          default_child_time_limit?: number | null
+          emergency_contacts?: Json | null
+          family_id: string
+          family_pin?: string | null
+          id?: string
+          notification_preferences?: Json | null
+          updated_at?: string
+          whatsapp_notifications?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          default_child_time_limit?: number | null
+          emergency_contacts?: Json | null
+          family_id?: string
+          family_pin?: string | null
+          id?: string
+          notification_preferences?: Json | null
+          updated_at?: string
+          whatsapp_notifications?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_settings_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: true
+            referencedRelation: "families"
             referencedColumns: ["id"]
           },
         ]
@@ -494,12 +784,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_child_to_family: {
+        Args: {
+          p_age: number
+          p_child_name: string
+          p_daily_time_limit?: number
+          p_family_id: string
+        }
+        Returns: string
+      }
       create_child_profile: {
         Args: {
           p_birthdate: string
           p_daily_limit_min?: number
           p_first_name: string
           p_grade: number
+        }
+        Returns: string
+      }
+      create_family_account: {
+        Args: {
+          p_family_name: string
+          p_parent_name: string
+          p_parent_phone: string
         }
         Returns: string
       }
@@ -510,6 +817,14 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      join_family_with_code: {
+        Args: {
+          p_invite_code: string
+          p_parent_name: string
+          p_parent_phone: string
+        }
+        Returns: string
       }
     }
     Enums: {
