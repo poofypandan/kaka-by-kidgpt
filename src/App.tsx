@@ -18,6 +18,7 @@ import ParentSettings from "./pages/ParentSettings";
 import ChildProfileSuccess from "./pages/ChildProfileSuccess";
 import FamilyAuth from "./pages/FamilyAuth";
 import FamilyDashboard from "./pages/FamilyDashboard";
+import ChildDetail from "./pages/ChildDetail";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,11 @@ const App = () => (
                 <Route path="/family-dashboard" element={
                   <AuthGuard>
                     <FamilyDashboard />
+                  </AuthGuard>
+                } />
+                <Route path="/child/:childId" element={
+                  <AuthGuard>
+                    <ChildDetail />
                   </AuthGuard>
                 } />
                 <Route path="/parent" element={

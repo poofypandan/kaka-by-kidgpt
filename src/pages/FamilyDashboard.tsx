@@ -355,35 +355,44 @@ export default function FamilyDashboard() {
                     const safety = getSafetyStatus(child.id);
                     const todayUsage = getTodayUsage(child.id);
                     
-                    return (
-                      <div key={child.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarFallback>{child.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{child.name}</p>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {todayUsage}/{child.daily_time_limit} menit
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={safety.color as any}>
-                            {safety.label}
-                          </Badge>
-                          <Button 
-                            size="sm" 
-                            onClick={() => startChildSession(child.id)}
-                            className="gap-1"
-                          >
-                            <MessageCircle className="h-3 w-3" />
-                            Chat
-                          </Button>
+                return (
+                  <div 
+                    key={child.id} 
+                    className="group flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 hover:bg-accent/5 transition-all duration-200 cursor-pointer"
+                    onClick={() => navigate(`/child/${child.id}`)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="group-hover:scale-105 transition-transform">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {child.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium group-hover:text-primary transition-colors">{child.name}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {todayUsage}/{child.daily_time_limit} menit hari ini
                         </div>
                       </div>
-                    );
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={safety.color as any}>
+                        {safety.label}
+                      </Badge>
+                      <Button 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startChildSession(child.id);
+                        }}
+                        className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MessageCircle className="h-3 w-3" />
+                        Chat
+                      </Button>
+                    </div>
+                  </div>
+                );
                   })}
                   
                   {children.length === 0 && (
@@ -456,53 +465,79 @@ export default function FamilyDashboard() {
                 const todayUsage = getTodayUsage(child.id);
                 
                 return (
-                  <Card key={child.id}>
+                  <Card 
+                    key={child.id} 
+                    className="group hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer"
+                    onClick={() => navigate(`/child/${child.id}`)}
+                  >
                     <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="text-lg">{child.name.charAt(0)}</AvatarFallback>
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="h-16 w-16 group-hover:scale-105 transition-transform">
+                          <AvatarFallback className="text-xl bg-primary text-primary-foreground">
+                            {child.name.charAt(0)}
+                          </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <h3 className="font-semibold">{child.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {child.age ? `${child.age} tahun` : 'Umur tidak diketahui'}
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                            {child.name}
+                          </h3>
+                          <p className="text-muted-foreground">
+                            {child.age ? `${child.age} tahun` : 'Anak'}
                           </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant={safety.color as any}>
+                              {safety.label}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                       
                       <div className="space-y-3">
                         <div className="flex items-center justify-between text-sm">
-                          <span>Status Keamanan:</span>
-                          <Badge variant={safety.color as any}>{safety.label}</Badge>
+                          <span className="text-muted-foreground">Waktu hari ini</span>
+                          <span className="font-medium">{todayUsage}/{child.daily_time_limit} menit</span>
                         </div>
                         
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Waktu Hari Ini:</span>
-                          <span>{todayUsage}/{child.daily_time_limit} menit</span>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full transition-all"
+                            style={{ width: `${Math.min((todayUsage / child.daily_time_limit) * 100, 100)}%` }}
+                          />
                         </div>
                         
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Batas Harian:</span>
-                          <span>{child.daily_time_limit} menit</span>
+                        <div className="flex gap-2 pt-2">
+                          <Button 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startChildSession(child.id);
+                            }}
+                            className="flex-1"
+                          >
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            Chat
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/child/${child.id}`);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/edit-child/${child.id}`);
+                            }}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </div>
-                      
-                      <div className="flex gap-2 mt-4">
-                        <Button 
-                          size="sm" 
-                          onClick={() => startChildSession(child.id)}
-                          className="flex-1"
-                        >
-                          <MessageCircle className="h-3 w-3 mr-1" />
-                          Mulai Chat
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => navigate(`/child-history/${child.id}`)}
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
