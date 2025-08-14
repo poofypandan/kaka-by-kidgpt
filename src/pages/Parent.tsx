@@ -70,11 +70,14 @@ function ParentDashboard() {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-              K
+            <div className="h-10 w-20 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/c9575da1-627c-4282-9065-7dceb619e982.png" 
+                alt="Kakak Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <span className="font-bold text-lg">Kaka</span>
               <p className="text-xs text-muted-foreground">Pembelajaran yang Aman</p>
             </div>
           </div>

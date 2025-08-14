@@ -107,8 +107,12 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-accent/10 p-4">
       <Card className="w-full max-w-md shadow-lg border-0" style={{ boxShadow: 'var(--shadow-soft)' }}>
         <CardHeader className="text-center space-y-3">
-          <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl font-bold text-primary-foreground">
-            🎒
+          <div className="mx-auto w-32 h-16 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/c9575da1-627c-4282-9065-7dceb619e982.png" 
+              alt="Kakak Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <CardTitle className="text-2xl font-bold text-primary">
             Selamat datang di Kaka!
