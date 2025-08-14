@@ -14,7 +14,204 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          actor: string
+          created_at: string
+          details: Json | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          created_at: string
+          daily_limit_min: number
+          first_name: string
+          grade: number
+          id: string
+          parent_id: string
+          streak_days: number
+          updated_at: string
+          used_today_min: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_limit_min?: number
+          first_name: string
+          grade: number
+          id?: string
+          parent_id: string
+          streak_days?: number
+          updated_at?: string
+          used_today_min?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_limit_min?: number
+          first_name?: string
+          grade?: number
+          id?: string
+          parent_id?: string
+          streak_days?: number
+          updated_at?: string
+          used_today_min?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          child_id: string
+          content: string
+          created_at: string
+          flag_type: string | null
+          flagged: boolean
+          id: string
+          metadata: Json | null
+          role: string
+          status: string
+        }
+        Insert: {
+          child_id: string
+          content: string
+          created_at?: string
+          flag_type?: string | null
+          flagged?: boolean
+          id?: string
+          metadata?: Json | null
+          role: string
+          status?: string
+        }
+        Update: {
+          child_id?: string
+          content?: string
+          created_at?: string
+          flag_type?: string | null
+          flagged?: boolean
+          id?: string
+          metadata?: Json | null
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parents: {
+        Row: {
+          consent_at: string | null
+          consent_meta: Json | null
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consent_at?: string | null
+          consent_meta?: Json | null
+          created_at?: string
+          full_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consent_at?: string | null
+          consent_meta?: Json | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          auth_user_id: string
+          created_at: string
+          email: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +220,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "PARENT" | "CHILD" | "ADMIN"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +347,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["PARENT", "CHILD", "ADMIN"],
+    },
   },
 } as const
