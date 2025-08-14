@@ -9,22 +9,22 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Warm Kaka theme colors for kid-safe, cozy feel */
-    --background: 35 20% 97%;
+    --background: 210 20% 98%;
     --foreground: 25 40% 15%;
 
-    --card: 35 30% 95%;
+    --card: 0 0% 100%;
     --card-foreground: 25 40% 15%;
 
-    --popover: 35 30% 95%;
+    --popover: 0 0% 100%;
     --popover-foreground: 25 40% 15%;
 
     --primary: 30 80% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 60% 85%;
+    --secondary: 340 30% 92%;
     --secondary-foreground: 25 40% 15%;
 
-    --muted: 45 50% 90%;
+    --muted: 210 15% 95%;
     --muted-foreground: 25 20% 45%;
 
     --accent: 35 70% 75%;
@@ -33,34 +33,34 @@ All colors MUST be HSL.
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 30% 88%;
-    --input: 35 30% 88%;
+    --border: 210 20% 90%;
+    --input: 210 20% 95%;
     --ring: 30 80% 55%;
 
     --radius: 0.75rem;
     
-    /* Kaka brand gradients */
+    /* Kid-friendly gradients */
     --gradient-warm: linear-gradient(135deg, hsl(30 80% 55%), hsl(35 70% 75%));
-    --gradient-gentle: linear-gradient(180deg, hsl(45 60% 95%), hsl(35 30% 95%));
+    --gradient-gentle: linear-gradient(180deg, hsl(210 30% 98%), hsl(340 20% 98%));
+    --gradient-pastel: linear-gradient(45deg, hsl(210 40% 95%), hsl(340 30% 95%), hsl(50 40% 95%));
     
     /* Shadows with warm tones */
     --shadow-soft: 0 4px 20px -6px hsl(30 80% 55% / 0.15);
     --shadow-glow: 0 0 30px hsl(30 80% 55% / 0.2);
+    --shadow-koala: 0 2px 10px -3px hsl(25 30% 60% / 0.3);
+
+    /* Koala colors */
+    --koala-gray: 25 15% 75%;
+    --koala-brown: 25 30% 60%;
+    --koala-pink: 340 50% 85%;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -102,6 +102,104 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+}
+
+/* Kid-friendly animations */
+@keyframes float-gentle {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); 
+  }
+  50% { 
+    transform: translateY(-10px) rotate(2deg); 
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-15px); 
+  }
+}
+
+@keyframes blink-slow {
+  0%, 90%, 100% { 
+    transform: scaleY(1); 
+  }
+  95% { 
+    transform: scaleY(0.1); 
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(0.8); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.2); 
+  }
+}
+
+@keyframes sway {
+  0%, 100% { 
+    transform: rotate(-2deg); 
+  }
+  50% { 
+    transform: rotate(2deg); 
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { 
+    transform: translateY(0); 
+  }
+  50% { 
+    transform: translateY(-5px); 
+  }
+}
+
+/* Koala character styles */
+.koala-floating {
+  animation: float-gentle 4s ease-in-out infinite;
+}
+
+.koala-swaying {
+  animation: sway 3s ease-in-out infinite;
+}
+
+.koala-sleeping {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.koala-eyes {
+  animation: blink-slow 4s ease-in-out infinite;
+}
+
+/* Decorative elements */
+.twinkle-star {
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.float-decoration {
+  animation: float-slow 3s ease-in-out infinite;
+}
+
+/* Enhanced form styling */
+.kid-friendly-input {
+  @apply rounded-xl border-2 border-input bg-card px-4 py-3 text-base 
+         transition-all duration-200 
+         focus:border-primary focus:ring-2 focus:ring-primary/20 focus:scale-[1.02]
+         hover:border-primary/50;
+}
+
+.kid-friendly-button {
+  @apply rounded-xl px-6 py-3 text-base font-medium
+         transition-all duration-200
+         hover:scale-105 hover:shadow-lg
+         active:scale-95;
 }
 
 @layer base {

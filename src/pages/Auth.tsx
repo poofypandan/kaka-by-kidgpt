@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { FloatingKoala, WavingKoala, SleepingKoala, TwinkleStar, FloatingHeart, FloatingCloud } from '@/components/KoalaCharacters';
 
 export default function Auth() {
   const { user, loading, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
@@ -104,20 +105,38 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-accent/10 p-4">
-      <Card className="w-full max-w-md shadow-lg border-0" style={{ boxShadow: 'var(--shadow-soft)' }}>
-        <CardHeader className="text-center space-y-3">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-accent/20 p-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <TwinkleStar className="absolute top-12 left-12 z-0" style={{ animationDelay: '0s' }} />
+      <TwinkleStar className="absolute top-20 right-20 z-0" style={{ animationDelay: '1s' }} />
+      <TwinkleStar className="absolute bottom-24 left-20 z-0" style={{ animationDelay: '2s' }} />
+      
+      <FloatingHeart className="absolute top-32 left-1/4 z-0" style={{ animationDelay: '0.5s' }} />
+      <FloatingHeart className="absolute bottom-40 right-1/3 z-0" style={{ animationDelay: '1.5s' }} />
+      
+      <FloatingCloud className="absolute top-16 right-12 z-0" style={{ animationDelay: '0.8s' }} />
+      <FloatingCloud className="absolute bottom-20 left-16 z-0" style={{ animationDelay: '2.2s' }} />
+
+      {/* Koala Characters */}
+      <FloatingKoala className="absolute top-8 left-8 z-10 hidden sm:block" />
+      <WavingKoala className="absolute bottom-8 right-8 z-10 hidden sm:block" />
+      <SleepingKoala className="absolute top-1/2 right-4 z-10 hidden lg:block" />
+
+      {/* Main Card */}
+      <Card className="w-full max-w-md relative z-20 backdrop-blur-sm bg-card/95 border-0 rounded-2xl" 
+            style={{ boxShadow: 'var(--shadow-soft)' }}>
+        <CardHeader className="text-center space-y-4 pb-6">
           <div className="mx-auto w-32 h-16 flex items-center justify-center">
             <img 
               src="/lovable-uploads/3c6d677b-f566-47d7-8a38-d8f86401741b.png" 
               alt="Kakak Logo" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain drop-shadow-sm"
             />
           </div>
           <CardTitle className="text-2xl font-bold text-primary">
             Hai! Ada yang mau kamu tanya?
           </CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardDescription className="text-muted-foreground text-base">
             Kaka siap membantu! 🐨
           </CardDescription>
         </CardHeader>
@@ -126,7 +145,7 @@ export default function Auth() {
           <Button 
             onClick={handleGoogleAuth}
             disabled={isSubmitting}
-            className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
+            className="w-full bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 shadow-sm rounded-xl py-3 transition-all duration-200 hover:scale-[1.02]"
             variant="outline"
           >
             {isSubmitting ? (
@@ -139,45 +158,45 @@ export default function Auth() {
           
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
+              <span className="w-full border-t border-border/50" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Atau</span>
+              <span className="bg-card px-3 text-muted-foreground font-medium">Atau</span>
             </div>
           </div>
 
           <Tabs defaultValue="login" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2 bg-muted">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Daftar</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-secondary/50 rounded-xl p-1">
+              <TabsTrigger value="login" className="rounded-lg">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg">Daftar</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="orangtua@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="border-border"
+                  className="kid-friendly-input"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              <div className="space-y-3">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="border-border"
+                  className="kid-friendly-input"
                 />
               </div>
               <Button 
                 onClick={() => handleEmailAuth(false)}
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground font-medium"
+                className="kid-friendly-button w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground font-medium shadow-md"
               >
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -187,32 +206,32 @@ export default function Auth() {
             </TabsContent>
             
             <TabsContent value="signup" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
+              <div className="space-y-3">
+                <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
                 <Input
                   id="signup-email"
                   type="email"
                   placeholder="orangtua@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="border-border"
+                  className="kid-friendly-input"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
+              <div className="space-y-3">
+                <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
                 <Input
                   id="signup-password"
                   type="password"
                   placeholder="Minimal 6 karakter"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="border-border"
+                  className="kid-friendly-input"
                 />
               </div>
               <Button 
                 onClick={() => handleEmailAuth(true)}
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground font-medium"
+                className="kid-friendly-button w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground font-medium shadow-md"
               >
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
