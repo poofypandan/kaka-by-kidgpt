@@ -115,10 +115,10 @@ export default function Auth() {
             />
           </div>
           <CardTitle className="text-2xl font-bold text-primary">
-            Hai! Kamu ada pertanyaan?
+            Hai! Ada yang mau kamu tanya?
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Kaka siap bantu keluarga! :)
+            Kaka siap membantu! 🐨
           </CardDescription>
         </CardHeader>
         
