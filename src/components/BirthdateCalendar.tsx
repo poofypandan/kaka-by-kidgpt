@@ -74,7 +74,7 @@ export function BirthdateCalendar({ selected, onSelect, className }: BirthdateCa
             <SelectTrigger className="w-20 h-8 text-sm">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border shadow-md z-50">
               {yearOptions.map(year => (
                 <SelectItem key={year} value={year.toString()}>
                   {year}
@@ -87,7 +87,7 @@ export function BirthdateCalendar({ selected, onSelect, className }: BirthdateCa
             <SelectTrigger className="w-32 h-8 text-sm">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border shadow-md z-50">
               {monthNames.map((month, index) => (
                 <SelectItem key={index} value={index.toString()}>
                   {month}
@@ -124,11 +124,17 @@ export function BirthdateCalendar({ selected, onSelect, className }: BirthdateCa
         selected={selected}
         onSelect={onSelect}
         month={displayDate}
+        onMonthChange={(date) => {
+          setDisplayMonth(date.getMonth());
+          setDisplayYear(date.getFullYear());
+        }}
         disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
         className={cn("p-3 pointer-events-auto")}
-        // Disable the default navigation since we handle it above
         showOutsideDays={false}
-        fixedWeeks
+        captionLayout="dropdown"
+        components={{
+          Caption: () => null, // Hide default caption since we have custom controls
+        }}
       />
     </div>
   );
