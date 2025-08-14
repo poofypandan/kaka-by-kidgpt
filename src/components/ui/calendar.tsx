@@ -22,6 +22,15 @@ function Calendar({
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",
+        dropdown_month: cn(
+          buttonVariants({ variant: "outline" }),
+          "h-8 text-sm font-medium bg-background border-input hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground pointer-events-auto z-50"
+        ),
+        dropdown_year: cn(
+          buttonVariants({ variant: "outline" }),
+          "h-8 text-sm font-medium bg-background border-input hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground pointer-events-auto z-50"
+        ),
+        vhidden: "sr-only",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
