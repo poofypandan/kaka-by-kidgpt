@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
+import { BirthdateCalendar } from '@/components/BirthdateCalendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { CalendarIcon, AlertCircle } from 'lucide-react';
+import { CalendarIcon, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { detectGradeFromBirthdate, getGradeDisplayText, isValidGradeOverride } from '@/lib/grade';
 import { useToast } from '@/hooks/use-toast';
@@ -173,13 +173,10 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
                   {birthdate ? format(birthdate, 'dd MMMM yyyy', { locale: id }) : "Pilih tanggal lahir"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
+              <PopoverContent className="w-auto p-0" align="start">
+                <BirthdateCalendar
                   selected={birthdate}
                   onSelect={setBirthdate}
-                  disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>
