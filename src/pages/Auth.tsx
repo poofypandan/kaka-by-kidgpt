@@ -115,10 +115,10 @@ export default function Auth() {
             />
           </div>
           <CardTitle className="text-2xl font-bold text-primary">
-            Selamat datang di Kaka!
+            Hai! Kamu ada pertanyaan?
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Platform belajar aman untuk anak Indonesia
+            Kaka siap bantu keluarga! :)
           </CardDescription>
         </CardHeader>
         
