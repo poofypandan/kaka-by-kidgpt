@@ -100,11 +100,27 @@ export default function FamilyDashboard() {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       console.log('FamilyDashboard - Current auth user:', authUser?.id);
       
-      // Check if user has parent record, if not this is likely using children system directly
+      if (!authUser) {
+        throw new Error('No authenticated user');
+      }
+
+      // Get user from public.users table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('auth_user_id', authUser.id)
+        .single();
+
+      if (userError || !userData) {
+        console.error('User not found in users table:', userError);
+        throw new Error('User data not found');
+      }
+
+      // Check if user has parent record
       const { data: parentData, error: parentError } = await supabase
         .from('parents')
         .select('id, user_id')
-        .eq('user_id', (await supabase.from('users').select('id').eq('auth_user_id', authUser?.id).single()).data?.id)
+        .eq('user_id', userData.id)
         .maybeSingle();
 
       console.log('FamilyDashboard - Parent data:', parentData);
@@ -145,10 +161,10 @@ export default function FamilyDashboard() {
                 invite_expires_at
               )
             `)
-            .eq('user_id', (await supabase.from('users').select('id').eq('auth_user_id', authUser?.id).single()).data?.id)
+            .eq('user_id', userData.id)
             .single();
 
-          if (!memberError) {
+          if (!memberError && familyMemberData) {
             setCurrentUserRole(familyMemberData.role);
             setFamily(familyMemberData.families);
 
@@ -158,7 +174,7 @@ export default function FamilyDashboard() {
               .select('*')
               .eq('family_id', familyMemberData.family_id);
 
-            if (!allMembersError) {
+            if (!allMembersError && allMembers) {
               setFamilyMembers(allMembers as FamilyMember[]);
               // Convert family members to children format where needed
               const familyChildren = allMembers.filter(m => m.role === 'child');
@@ -175,6 +191,8 @@ export default function FamilyDashboard() {
               setChildren(convertedChildren);
               setParents(allMembers.filter(m => m.role !== 'child') as FamilyMember[]);
             }
+          } else {
+            throw new Error('No family member data found');
           }
         } catch (familyError) {
           console.log('No family data found, showing empty state');
@@ -189,20 +207,8 @@ export default function FamilyDashboard() {
       // Get notifications (skip for now to avoid errors)
       setNotifications([]);
 
-      // Get today's child sessions
-      const today = new Date().toISOString().split('T')[0];
-      const childIds = children.map(c => c.id);
-      if (childIds.length > 0) {
-        const { data: sessionData, error: sessionError } = await supabase
-          .from('child_sessions')
-          .select('*')
-          .gte('started_at', today)
-          .in('child_id', childIds);
-
-        if (!sessionError) {
-          setChildSessions(sessionData || []);
-        }
-      }
+      // Load child sessions after children are loaded
+      await loadChildSessions();
 
     } catch (error: any) {
       console.error('Error loading family data:', error);
@@ -211,6 +217,72 @@ export default function FamilyDashboard() {
       setLoading(false);
     }
   };
+
+  const loadChildSessions = async () => {
+    try {
+      if (children.length === 0) return;
+
+      // Get today's child sessions
+      const today = new Date().toISOString().split('T')[0];
+      const childIds = children.map(c => c.id);
+      
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('child_sessions')
+        .select('*')
+        .gte('started_at', today)
+        .in('child_id', childIds);
+
+      if (!sessionError) {
+        setChildSessions(sessionData || []);
+      }
+    } catch (error) {
+      console.error('Error loading child sessions:', error);
+    }
+  };
+
+  // Real-time subscription for children changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('family-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'children'
+        },
+        () => {
+          // Reload family data when children are added/modified
+          loadFamilyData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'family_members'
+        },
+        () => {
+          // Reload family data when family members are added/modified
+          loadFamilyData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Load sessions when children change
+  useEffect(() => {
+    if (children.length > 0) {
+      loadChildSessions();
+    }
+  }, [children]);
 
   const generateNewInviteCode = async () => {
     try {
@@ -242,8 +314,8 @@ export default function FamilyDashboard() {
   };
 
   const startChildSession = (childId: string) => {
-    // Navigate to child interface with selected child
-    navigate(`/child-chat/${childId}`);
+    // Navigate to child selection page first to set child mode
+    navigate('/child-selection');
   };
 
   const getSafetyStatus = (childId: string) => {
@@ -454,15 +526,15 @@ export default function FamilyDashboard() {
                  );
                    })}
                   
-                   {children.length === 0 && (
-                     <div className="text-center py-8">
-                       <p className="text-muted-foreground mb-4">Belum ada anak yang ditambahkan</p>
-                       <Button onClick={() => navigate('/parent')}>
-                         <UserPlus className="h-4 w-4 mr-2" />
-                         Tambah Anak
-                       </Button>
-                     </div>
-                   )}
+                    {children.length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground mb-4">Belum ada anak yang ditambahkan</p>
+                        <Button onClick={() => navigate('/onboarding')}>
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Tambah Anak
+                        </Button>
+                      </div>
+                    )}
                 </CardContent>
               </Card>
 
