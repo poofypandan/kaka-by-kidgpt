@@ -51,15 +51,39 @@ const EMERGENCY_RESPONSES = [
   "Wah, Kaka butuh bantuan untuk yang ini. Mau bicara tentang apa lagi? 😊"
 ];
 
-// Enhanced Indonesian safety filtering patterns
+// COMPREHENSIVE Indonesian safety filtering patterns - CRITICAL FOR CHILD SAFETY
 const INAPPROPRIATE_PATTERNS = [
-  /\b(anjing|bangsat|babi|kampret|kontol|memek|ngentot|peler|tai|tetek|titit)\b/i,
+  // Explicit profanity
+  /\b(anjing|bangsat|babi|kampret|kontol|memek|ngentot|peler|tai|tetek|titit|penis|vagina)\b/i,
   /\b(brengsek|bajingan|keparat|sialan|bangke|jelek amat|tolol|bodoh banget|goblok)\b/i,
   /\b(fuck|shit|damn|bitch|asshole|crap|wtf|omg|goddamn)\b/i,
+  
+  // Sexual content - COMPLETELY BLOCKED
   /\b(seks|sex|telanjang|naked|bugil|ml|making love|bercinta|pacaran|pacar|ciuman|kiss)\b/i,
+  /\b(porn|porno|xxx|masturbasi|onani|ngocok|colmek|oral|anal)\b/i,
+  
+  // Violence and harm
   /\b(bunuh|kill|mati|death|berkelahi|fight|pukul|hit|tendang|kick|tusuk|stab)\b/i,
+  /\b(darah|blood|luka|wound|sakit|hurt|bahaya|dangerous|racun|poison)\b/i,
+  /\b(senjata|weapon|pistol|gun|pisau|knife|bom|bomb|ledak|explode)\b/i,
+  
+  // Substances and illegal activities
   /\b(narkoba|drugs|ganja|weed|marijuana|kokain|cocaine|heroin|ekstasi|ecstasy)\b/i,
   /\b(mabuk|drunk|minum|alkohol|alcohol|bir|beer|wine|vodka|whiskey)\b/i,
+  /\b(rokok|cigarette|ngerokok|smoking|vape|vaping|tembakau|tobacco)\b/i,
+  
+  // Adult topics
+  /\b(hamil|pregnant|melahirkan|birth|menstruasi|period|haid|payudara|breast)\b/i,
+  /\b(dewasa|adult|18\+|mature|gambling|judi|taruhan|bet)\b/i,
+  
+  // Personal information risks
+  /\b(alamat|address|rumah|home|sekolah|school|kelas|class|guru|teacher)\b/i,
+  /\b(nomor hp|phone|telepon|wa|whatsapp|ig|instagram|fb|facebook)\b/i,
+  /\b(email|password|pin|atm|rekening|account|uang|money)\b/i,
+  
+  // Emotional distress
+  /\b(sedih banget|very sad|depresi|depression|bunuh diri|suicide|mati aja|want to die)\b/i,
+  /\b(takut|scared|nightmare|mimpi buruk|hantu|ghost|setan|devil)\b/i,
 ];
 
 const SAFETY_SYSTEM_PROMPT = `You are Kaka, a friendly AI assistant for Indonesian children aged 6-12.
@@ -82,9 +106,76 @@ Examples:
 
 Keep responses under 50 words and always encouraging! 🌟`;
 
-function containsInappropriateContent(text: string): boolean {
+// COMPREHENSIVE safety check with detailed categorization
+function checkContentSafety(text: string): {
+  isAppropriate: boolean;
+  category: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  reason: string;
+} {
   const lowerText = text.toLowerCase();
-  return INAPPROPRIATE_PATTERNS.some(pattern => pattern.test(lowerText));
+  
+  // Check for sexual content (CRITICAL)
+  if (/\b(seks|sex|telanjang|naked|bugil|porn|porno|xxx|masturbasi|onani|ciuman|kiss|pacaran)\b/i.test(lowerText)) {
+    return {
+      isAppropriate: false,
+      category: 'sexual_content',
+      severity: 'critical',
+      reason: 'Sexual content detected'
+    };
+  }
+  
+  // Check for violence (HIGH)
+  if (/\b(bunuh|kill|mati|death|berkelahi|fight|pukul|hit|darah|blood|senjata|weapon)\b/i.test(lowerText)) {
+    return {
+      isAppropriate: false,
+      category: 'violence',
+      severity: 'high',
+      reason: 'Violence content detected'
+    };
+  }
+  
+  // Check for substances (HIGH)
+  if (/\b(narkoba|drugs|mabuk|drunk|alkohol|alcohol|rokok|cigarette)\b/i.test(lowerText)) {
+    return {
+      isAppropriate: false,
+      category: 'substances',
+      severity: 'high',
+      reason: 'Substance abuse content detected'
+    };
+  }
+  
+  // Check for profanity (MEDIUM)
+  if (/\b(anjing|bangsat|babi|kampret|kontol|memek|ngentot|fuck|shit|damn|bitch)\b/i.test(lowerText)) {
+    return {
+      isAppropriate: false,
+      category: 'profanity',
+      severity: 'medium',
+      reason: 'Inappropriate language detected'
+    };
+  }
+  
+  // Check for personal info (HIGH)
+  if (/\b(alamat|address|nomor hp|phone|password|email|sekolah|school)\b/i.test(lowerText)) {
+    return {
+      isAppropriate: false,
+      category: 'personal_info',
+      severity: 'high',
+      reason: 'Personal information sharing detected'
+    };
+  }
+  
+  return {
+    isAppropriate: true,
+    category: 'safe',
+    severity: 'low',
+    reason: 'Content is appropriate'
+  };
+}
+
+// Legacy function for backwards compatibility
+function containsInappropriateContent(text: string): boolean {
+  return !checkContentSafety(text).isAppropriate;
 }
 
 function getFallbackResponse(message: string): string | null {
@@ -132,15 +223,39 @@ function getEmergencyResponse(): string {
   return response;
 }
 
-function generateSafeResponse(): string {
-  const safeResponses = [
-    "Hmm, bagaimana kalau kita bicara tentang hal yang lebih seru? Aku bisa ceritakan tentang hewan lucu atau permainan seru! 🐨✨",
-    "Wah, aku lebih suka membahas hal-hal yang menyenangkan! Mau dengar cerita tentang petualangan atau belajar hal baru? 🌟📚",
-    "Ayo kita bicara tentang sesuatu yang lebih menarik! Kamu suka menggambar atau bernyanyi? 🎨🎵",
-    "Kaka punya banyak cerita seru nih! Mau dengar tentang petualangan di hutan atau di bawah laut? 🌊🦋",
-    "Wah, Kaka ingin tahu tentang hal-hal yang kamu suka! Ceritain dong hobi atau permainan favoritmu! 🎮🎨"
-  ];
-  return safeResponses[Math.floor(Math.random() * safeResponses.length)];
+// Generate appropriate safety response based on severity
+function generateSafeResponse(category: string, severity: string): string {
+  console.log(`🛡️ Generating safety response for category: ${category}, severity: ${severity}`);
+  
+  const responses = {
+    sexual_content: [
+      "⚠️ Wah, topik ini terlalu dewasa untuk Kaka bahas. Bagaimana kalau kita bicara tentang hal yang lebih seru? Aku bisa ceritakan tentang hewan lucu! 🐨✨",
+      "⚠️ Kaka hanya suka membahas hal-hal yang menyenangkan dan aman! Mau dengar cerita petualangan atau bermain game edukatif? 🌟📚"
+    ],
+    violence: [
+      "⚠️ Kaka tidak suka membahas hal-hal yang menyakitkan. Ayo kita bicara tentang hal yang menyenangkan! Mau dengar tentang superhero yang menolong orang? 🦸‍♀️✨",
+      "⚠️ Wah, bagaimana kalau kita bicara tentang persahabatan dan kebaikan? Kaka punya cerita seru tentang gotong royong! 🤝🌟"
+    ],
+    substances: [
+      "⚠️ Topik ini tidak cocok untuk anak-anak. Mau Kaka ceritakan tentang makanan sehat yang enak? Atau olahraga yang seru? 🥗⚽",
+      "⚠️ Kaka lebih suka membahas hal-hal yang menyehatkan! Mau belajar tentang buah-buahan atau sayuran yang enak? 🍎🥕"
+    ],
+    profanity: [
+      "⚠️ Kata-kata itu kurang sopan ya. Kaka suka anak yang bicara dengan baik dan santun! Mau belajar kata-kata yang indah? 😊🌟",
+      "⚠️ Ayo gunakan kata-kata yang baik dan sopan! Kaka bisa ajarin kata-kata yang lebih indah dan bermakna! 💫📚"
+    ],
+    personal_info: [
+      "⚠️ Jangan ceritakan informasi pribadi ya! Untuk keamanan, lebih baik kita bicara tentang hobi atau pelajaran saja! 🛡️✨",
+      "⚠️ Demi keamanan, jangan bagikan informasi pribadi. Mau cerita tentang buku atau film favorit saja? 📖🎬"
+    ],
+    default: [
+      "⚠️ Hmm, bagaimana kalau kita bicara tentang hal yang lebih seru? Aku bisa ceritakan tentang hewan lucu atau permainan seru! 🐨✨",
+      "⚠️ Wah, aku lebih suka membahas hal-hal yang menyenangkan! Mau dengar cerita tentang petualangan atau belajar hal baru? 🌟📚"
+    ]
+  };
+  
+  const categoryResponses = responses[category as keyof typeof responses] || responses.default;
+  return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
 }
 
 async function logConversation(childId: string | null, content: string, sender: 'child' | 'kaka', safetyScore: number, filtered: boolean, filterReason?: string) {
@@ -305,23 +420,30 @@ serve(async (req) => {
       });
     }
 
-    console.log('🔍 Checking for inappropriate content...');
+    console.log('🔍 CRITICAL SAFETY CHECK: Checking for inappropriate content...');
     
-    // Check for inappropriate content
-    if (containsInappropriateContent(message)) {
-      console.log('⚠️ Inappropriate content detected, using safe response');
+    // COMPREHENSIVE SAFETY CHECK - BLOCKS INAPPROPRIATE CONTENT BEFORE API CALL
+    const safetyCheck = checkContentSafety(message);
+    
+    if (!safetyCheck.isAppropriate) {
+      console.log(`🚨 CONTENT BLOCKED! Category: ${safetyCheck.category}, Severity: ${safetyCheck.severity}, Reason: ${safetyCheck.reason}`);
       
-      const safeResponse = generateSafeResponse();
+      const safeResponse = generateSafeResponse(safetyCheck.category, safetyCheck.severity);
       
-      // Log the safe response
+      // Log the blocked content and safety response
       if (childId) {
-        await logConversation(childId, safeResponse, 'kaka', 50, true, 'inappropriate_content');
+        console.log('📝 Logging safety violation and response');
+        await logConversation(childId, message, 'child', 25, true, `${safetyCheck.category}_blocked_${safetyCheck.severity}`);
+        await logConversation(childId, safeResponse, 'kaka', 50, true, 'safety_response');
       }
       
       return new Response(JSON.stringify({ 
         message: safeResponse,
         filtered: true,
-        source: 'safety_filter'
+        source: 'safety_filter',
+        category: safetyCheck.category,
+        severity: safetyCheck.severity,
+        warning: '⚠️ Peringatan Keamanan: Konten tidak pantas untuk anak-anak'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -357,20 +479,23 @@ serve(async (req) => {
     if (aiResponse) {
       console.log('✅ Claude API succeeded with response:', aiResponse);
       
-      // Check AI response for safety
-      if (containsInappropriateContent(aiResponse)) {
-        console.log('⚠️ AI response filtered for safety');
-        const safeResponse = generateSafeResponse();
+      // DOUBLE-CHECK AI response for safety (secondary filter)
+      const aiSafetyCheck = checkContentSafety(aiResponse);
+      if (!aiSafetyCheck.isAppropriate) {
+        console.log(`⚠️ AI response filtered for safety! Category: ${aiSafetyCheck.category}, Severity: ${aiSafetyCheck.severity}`);
+        const safeResponse = generateSafeResponse(aiSafetyCheck.category, aiSafetyCheck.severity);
         
         // Log the filtered response
         if (childId) {
-          await logConversation(childId, safeResponse, 'kaka', 50, true, 'ai_response_filtered');
+          await logConversation(childId, safeResponse, 'kaka', 50, true, `ai_response_filtered_${aiSafetyCheck.category}`);
         }
         
         return new Response(JSON.stringify({ 
           message: safeResponse,
           filtered: true,
-          source: 'ai_filtered'
+          source: 'ai_filtered',
+          category: aiSafetyCheck.category,
+          severity: aiSafetyCheck.severity
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
