@@ -305,7 +305,7 @@ serve(async (req) => {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${anthropicApiKey}`,
+        'x-api-key': anthropicApiKey,
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01',
       },
