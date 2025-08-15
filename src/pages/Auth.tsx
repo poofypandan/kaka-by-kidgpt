@@ -87,20 +87,57 @@ export default function Auth() {
     setIsSubmitting(true);
     
     try {
+      console.log('🚀 Starting Google authentication...');
       const { error } = await signInWithGoogle();
       
       if (error) {
+        console.error('❌ Google auth failed:', error);
+        
+        let title = "Google Login Error";
+        let description = "Gagal login dengan Google";
+        
+        // Handle specific error types with helpful messages
+        if (error.isConfigurationError) {
+          title = "Konfigurasi Diperlukan";
+          description = error.message || "Google OAuth belum dikonfigurasi di sistem";
+        } else if (error.isUserCancelled) {
+          title = "Login Dibatalkan";
+          description = error.message || "Login dibatalkan oleh pengguna";
+        } else if (error.message?.includes('popup')) {
+          title = "Popup Diblokir";
+          description = "Silakan izinkan popup untuk login Google atau coba lagi";
+        } else if (error.message?.includes('network')) {
+          title = "Masalah Koneksi";
+          description = "Periksa koneksi internet dan coba lagi";
+        }
+        
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Gagal login dengan Google",
+          title,
+          description,
+          duration: error.isConfigurationError ? 10000 : 5000, // Longer duration for config errors
+        });
+        
+        // Log detailed error for debugging
+        console.group('🔍 Google OAuth Debug Info');
+        console.log('Current URL:', window.location.href);
+        console.log('Expected redirect:', `${window.location.origin}/auth/callback`);
+        console.log('Error details:', error);
+        console.log('Supabase URL:', 'https://drlcflhgzhwxuzqhmdmf.supabase.co');
+        console.groupEnd();
+      } else {
+        console.log('✅ Google auth initiated successfully');
+        toast({
+          title: "Mengalihkan...",
+          description: "Membuka jendela Google untuk login",
         });
       }
     } catch (error) {
+      console.error('💥 Unexpected error in handleGoogleAuth:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Terjadi kesalahan sistem",
+        title: "Error Sistem",
+        description: "Terjadi kesalahan tak terduga. Silakan coba lagi.",
       });
     } finally {
       setIsSubmitting(false);

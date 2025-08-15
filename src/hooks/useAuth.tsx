@@ -61,13 +61,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+    try {
+      console.log('🔐 Attempting Google OAuth login...');
+      console.log('Redirect URL:', `${window.location.origin}/auth/callback`);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      console.log('🔐 Google OAuth response:', { data, error });
+      
+      if (error) {
+        console.error('🚨 Google OAuth error:', error);
+        
+        // Check for common OAuth configuration issues
+        if (error.message?.includes('invalid_request') || 
+            error.message?.includes('unauthorized_client') ||
+            error.message?.includes('redirect_uri_mismatch')) {
+          return { 
+            error: {
+              ...error,
+              message: 'Google OAuth belum dikonfigurasi. Silakan hubungi administrator untuk mengatur Google OAuth di Supabase Dashboard.',
+              isConfigurationError: true
+            }
+          };
+        }
+        
+        if (error.message?.includes('access_denied')) {
+          return { 
+            error: {
+              ...error,
+              message: 'Login dibatalkan. Silakan coba lagi dan berikan izin akses.',
+              isUserCancelled: true
+            }
+          };
+        }
       }
-    });
-    return { error };
+      
+      return { error };
+    } catch (err) {
+      console.error('🚨 Unexpected Google OAuth error:', err);
+      return { 
+        error: {
+          message: 'Terjadi kesalahan saat login dengan Google. Silakan coba lagi.',
+          originalError: err
+        }
+      };
+    }
   };
 
   const signOut = async () => {
