@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import { AuthGuard } from "@/components/AuthGuard";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ChildModeProvider } from "@/components/ChildModeContext";
 import { DemoProvider } from "@/hooks/useDemoMode";
 import Auth from "./pages/Auth";
@@ -12,6 +12,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Parent from "./pages/Parent";
 import ChildSelection from "./pages/ChildSelection";
 import ChildHome from "./pages/ChildHome";
+import ChildDashboard from "./pages/ChildDashboard";
 import Chat from "./pages/Chat";
 import Activities from "./pages/Activities";
 import ParentSettings from "./pages/ParentSettings";
@@ -40,60 +41,98 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/family-auth" element={<FamilyAuth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+                
+                {/* Parent Routes */}
                 <Route path="/family-dashboard" element={
-                  <AuthGuard>
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
                     <FamilyDashboard />
-                  </AuthGuard>
+                  </ProtectedRoute>
                 } />
-                <Route path="/child/:childId" element={
-                  <AuthGuard>
-                    <ChildDetail />
-                  </AuthGuard>
+                <Route path="/children" element={
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
+                    <FamilyDashboard />
+                  </ProtectedRoute>
                 } />
-                <Route path="/child-profile/:childId" element={
-                  <AuthGuard>
-                    <ChildProfile />
-                  </AuthGuard>
+                <Route path="/safety" element={
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
+                    <FamilyDashboard />
+                  </ProtectedRoute>
                 } />
-                <Route path="/child-chat/:childId" element={
-                  <AuthGuard>
-                    <ChildChat />
-                  </AuthGuard>
-                } />
-                <Route path="/parent" element={
-                  <AuthGuard>
-                    <Parent />
-                  </AuthGuard>
-                } />
-                <Route path="/child-selection" element={
-                  <AuthGuard>
-                    <ChildSelection />
-                  </AuthGuard>
-                } />
-                <Route path="/child-home" element={
-                  <AuthGuard>
-                    <ChildHome />
-                  </AuthGuard>
-                } />
-                <Route path="/chat" element={
-                  <AuthGuard>
-                    <Chat />
-                  </AuthGuard>
-                } />
-                <Route path="/activities" element={
-                  <AuthGuard>
-                    <Activities />
-                  </AuthGuard>
+                <Route path="/billing" element={
+                  <ProtectedRoute allowedRoles={['primary_parent']}>
+                    <FamilyDashboard />
+                  </ProtectedRoute>
                 } />
                 <Route path="/settings" element={
-                  <AuthGuard>
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
                     <ParentSettings />
-                  </AuthGuard>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Child Routes */}
+                <Route path="/child-dashboard" element={
+                  <ProtectedRoute allowedRoles={['child']}>
+                    <ChildDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/games" element={
+                  <ProtectedRoute allowedRoles={['child']}>
+                    <Activities />
+                  </ProtectedRoute>
+                } />
+                <Route path="/stories" element={
+                  <ProtectedRoute allowedRoles={['child']}>
+                    <Activities />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Shared Routes - All roles */}
+                <Route path="/chat" element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Legacy Routes for Backward Compatibility */}
+                <Route path="/child/:childId" element={
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
+                    <ChildDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/child-profile/:childId" element={
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
+                    <ChildProfile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/child-chat/:childId" element={
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
+                    <ChildChat />
+                  </ProtectedRoute>
+                } />
+                <Route path="/parent" element={
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
+                    <Parent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/child-selection" element={
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
+                    <ChildSelection />
+                  </ProtectedRoute>
+                } />
+                <Route path="/child-home" element={
+                  <ProtectedRoute allowedRoles={['child']}>
+                    <ChildHome />
+                  </ProtectedRoute>
+                } />
+                <Route path="/activities" element={
+                  <ProtectedRoute>
+                    <Activities />
+                  </ProtectedRoute>
                 } />
                 <Route path="/child-profile-success" element={
-                  <AuthGuard>
+                  <ProtectedRoute allowedRoles={['primary_parent', 'secondary_parent']}>
                     <ChildProfileSuccess />
-                  </AuthGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFound />} />
               </Routes>
