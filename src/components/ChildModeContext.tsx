@@ -34,13 +34,13 @@ export function ChildModeProvider({ children }: { children: React.ReactNode }) {
     setCurrentChild(child);
     setIsChildMode(true);
     setLastActivity(new Date());
-    navigate('/child-home');
+    // Don't auto-navigate here, let the calling component handle navigation
   };
 
   const exitChildMode = () => {
     setCurrentChild(null);
     setIsChildMode(false);
-    navigate('/parent');
+    navigate('/family-dashboard');
   };
 
   const updateActivity = () => {

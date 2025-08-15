@@ -32,7 +32,10 @@ export default function ChildSelection() {
   }, [user, authLoading, navigate, children, setChildren]);
 
   const handleChildSelect = (child: Child) => {
+    console.log('Selecting child:', child);
     setChildMode(child);
+    // Navigate to chat page
+    navigate('/chat');
   };
 
   const getAgeDisplay = (birthdate?: string) => {
@@ -64,7 +67,7 @@ export default function ChildSelection() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => navigate('/parent')}
+            onClick={() => navigate('/family-dashboard')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -101,7 +104,7 @@ export default function ChildSelection() {
                   Tambahkan profil anak terlebih dahulu di dashboard orang tua
                 </p>
                 <div className="space-y-2">
-                  <Button onClick={() => navigate('/parent')}>
+                  <Button onClick={() => navigate('/family-dashboard')}>
                     Kembali ke Dashboard
                   </Button>
                   <Button variant="outline" onClick={refreshChildren}>
