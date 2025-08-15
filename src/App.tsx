@@ -19,6 +19,8 @@ import ChildProfileSuccess from "./pages/ChildProfileSuccess";
 import FamilyAuth from "./pages/FamilyAuth";
 import FamilyDashboard from "./pages/FamilyDashboard";
 import ChildDetail from "./pages/ChildDetail";
+import ChildProfile from "./pages/ChildProfile";
+import ChildChat from "./pages/ChildChat";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +48,16 @@ const App = () => (
                 <Route path="/child/:childId" element={
                   <AuthGuard>
                     <ChildDetail />
+                  </AuthGuard>
+                } />
+                <Route path="/child-profile/:childId" element={
+                  <AuthGuard>
+                    <ChildProfile />
+                  </AuthGuard>
+                } />
+                <Route path="/child-chat/:childId" element={
+                  <AuthGuard>
+                    <ChildChat />
                   </AuthGuard>
                 } />
                 <Route path="/parent" element={

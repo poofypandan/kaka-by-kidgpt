@@ -148,54 +148,38 @@ export default function FamilyDashboard() {
       } else {
         // Try family system as fallback
         try {
-          const { data: familyMemberData, error: memberError } = await supabase
-            .from('family_members')
-            .select(`
-              id,
-              role,
-              family_id,
-              families (
-                id,
-                name,
-                invite_code,
-                invite_expires_at
-              )
-            `)
+          // First get parent data to get parent_id
+          const { data: parentData, error: parentError } = await supabase
+            .from('parents')
+            .select('id, full_name')
             .eq('user_id', userData.id)
             .single();
 
-          if (!memberError && familyMemberData) {
-            setCurrentUserRole(familyMemberData.role);
-            setFamily(familyMemberData.families);
-
-            // Get all family members
-            const { data: allMembers, error: allMembersError } = await supabase
-              .from('family_members')
+          if (!parentError && parentData) {
+            setCurrentUserRole('parent');
+            
+            // Load children directly from children table
+            const { data: childrenData, error: childrenError } = await supabase
+              .from('children')
               .select('*')
-              .eq('family_id', familyMemberData.family_id);
+              .eq('parent_id', parentData.id);
 
-            if (!allMembersError && allMembers) {
-              setFamilyMembers(allMembers as FamilyMember[]);
-              // Convert family members to children format where needed
-              const familyChildren = allMembers.filter(m => m.role === 'child');
-              const convertedChildren = familyChildren.map(fc => ({
-                id: fc.id,
-                first_name: fc.name,
-                grade: Math.floor((fc.age || 6) / 2), // Rough estimate
-                birthdate: undefined,
-                daily_limit_min: fc.daily_time_limit || 60,
-                used_today_min: 0,
-                parent_id: '',
-                user_id: fc.user_id
-              }));
-              setChildren(convertedChildren);
-              setParents(allMembers.filter(m => m.role !== 'child') as FamilyMember[]);
+            if (!childrenError && childrenData) {
+              setChildren(childrenData);
+            } else {
+              console.error('Error loading children:', childrenError);
+              setChildren([]);
             }
+
+            // Set family info (simplified for now)
+            setFamily({ id: parentData.id, name: 'Keluarga ' + parentData.full_name });
+            setFamilyMembers([]);
+            setParents([]);
           } else {
-            throw new Error('No family member data found');
+            throw new Error('No parent data found');
           }
-        } catch (familyError) {
-          console.log('No family data found, showing empty state');
+        } catch (error) {
+          console.log('No parent data found, showing empty state');
           setCurrentUserRole('parent');
           setFamily({ id: 'none', name: 'Keluarga' });
           setChildren([]);
@@ -487,11 +471,11 @@ export default function FamilyDashboard() {
                      const todayUsage = getTodayUsage(child.id);
                      
                  return (
-                   <div 
-                     key={child.id} 
-                     className="group flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 hover:bg-accent/5 transition-all duration-200 cursor-pointer"
-                     onClick={() => navigate(`/child/${child.id}`)}
-                   >
+                    <div 
+                      key={child.id} 
+                      className="group flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 hover:bg-accent/5 transition-all duration-200 cursor-pointer"
+                      onClick={() => navigate(`/child-profile/${child.id}`)}
+                    >
                      <div className="flex items-center gap-3">
                        <Avatar className="group-hover:scale-105 transition-transform">
                          <AvatarFallback className="bg-primary text-primary-foreground">
@@ -510,17 +494,17 @@ export default function FamilyDashboard() {
                        <Badge variant={safety.color as any}>
                          {safety.label}
                        </Badge>
-                       <Button 
-                         size="sm" 
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           startChildSession(child.id);
-                         }}
-                         className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                       >
-                         <MessageCircle className="h-3 w-3" />
-                         Chat
-                       </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/child-chat/${child.id}`);
+                          }}
+                          className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                          Chat
+                        </Button>
                      </div>
                    </div>
                  );
@@ -599,7 +583,7 @@ export default function FamilyDashboard() {
                   <Card 
                     key={child.id} 
                     className="group hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer"
-                    onClick={() => navigate(`/child/${child.id}`)}
+                    onClick={() => navigate(`/child-profile/${child.id}`)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4 mb-4">
@@ -637,27 +621,27 @@ export default function FamilyDashboard() {
                         </div>
                         
                         <div className="flex gap-2 pt-2">
-                          <Button 
-                            size="sm" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              startChildSession(child.id);
-                            }}
-                            className="flex-1"
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Chat
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/child/${child.id}`);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                           <Button 
+                             size="sm" 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               navigate(`/child-chat/${child.id}`);
+                             }}
+                             className="flex-1"
+                           >
+                             <MessageCircle className="h-4 w-4 mr-2" />
+                             Chat
+                           </Button>
+                           <Button 
+                             variant="outline" 
+                             size="sm"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               navigate(`/child-profile/${child.id}`);
+                             }}
+                           >
+                             <Eye className="h-4 w-4" />
+                           </Button>
                           <Button 
                             variant="outline" 
                             size="sm"
