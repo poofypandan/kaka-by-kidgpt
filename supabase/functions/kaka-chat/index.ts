@@ -260,6 +260,10 @@ serve(async (req) => {
   console.log('  - SUPABASE_SERVICE_ROLE_KEY:', !!supabaseServiceKey);
   console.log('  - ANTHROPIC_API_KEY:', !!anthropicApiKey);
   
+  if (anthropicApiKey) {
+    console.log('  - ANTHROPIC_API_KEY first 10 chars:', anthropicApiKey.substring(0, 10));
+  }
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('✅ Handling CORS preflight');
