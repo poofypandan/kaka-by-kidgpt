@@ -2,62 +2,27 @@ import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useDemoMode } from '@/hooks/useDemoMode';
 import { Loader2, BookOpen, Users, Shield } from 'lucide-react';
 import DemoMode from '@/components/DemoMode';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 export default function Index() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { familyMember, family, loading: roleLoading, isParent, isChild } = useUserRole();
   const { isDemoMode, demoUserType, startDemo } = useDemoMode();
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [showDemoMode, setShowDemoMode] = useState(false);
-
-  useEffect(() => {
-    const checkProfile = async () => {
-      if (!user) {
-        setProfileLoading(false);
-        return;
-      }
-
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        setUserProfile(profile);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-
-    checkProfile();
-  }, [user]);
-
-  // Check if we should show demo mode
-  useEffect(() => {
-    if (!loading && !user && !isDemoMode) {
-      // Show demo mode if no user and not in demo
-      setShowDemoMode(true);
-    }
-  }, [loading, user, isDemoMode]);
 
   // Handle demo mode
   if (isDemoMode && demoUserType) {
     if (demoUserType === 'parent') {
-      return <Navigate to="/parent" replace />;
+      return <Navigate to="/family-dashboard" replace />;
     } else {
-      return <Navigate to="/child-home" replace />;
+      return <Navigate to="/child-dashboard" replace />;
     }
   }
 
-  if (loading || profileLoading) {
+  // Show loading state
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -66,7 +31,7 @@ export default function Index() {
   }
 
   // Show demo mode if no user
-  if (showDemoMode && !user) {
+  if (!user && !isDemoMode) {
     return <DemoMode onStartDemo={startDemo} />;
   }
 
@@ -75,21 +40,16 @@ export default function Index() {
     return <Navigate to="/auth" replace />;
   }
 
-  // If user exists but no profile, redirect to onboarding
-  if (!userProfile) {
-    return <Navigate to="/onboarding" replace />;
+  // If user exists but no family/family member, redirect to family-auth
+  if (!family || !familyMember) {
+    return <Navigate to="/family-auth" replace />;
   }
 
-  // If user has profile but no role, redirect to onboarding
-  if (!userProfile.role) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // Redirect based on role
-  if (userProfile.role === 'PARENT') {
-    return <Navigate to="/parent" replace />;
-  } else if (userProfile.role === 'CHILD') {
-    return <Navigate to="/child-home" replace />;
+  // Redirect based on role from family_members table
+  if (isParent()) {
+    return <Navigate to="/family-dashboard" replace />;
+  } else if (isChild()) {
+    return <Navigate to="/child-dashboard" replace />;
   }
 
   const handleSignOut = async () => {
