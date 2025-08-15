@@ -2,9 +2,9 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -80,15 +80,16 @@ const GRADE_FILTERS = {
   }
 };
 
-const SAFETY_SYSTEM_PROMPT = `You are Kaka, a friendly AI assistant for Indonesian children.
-CRITICAL RULES:
-- Always respond in simple Bahasa Indonesia
-- Never discuss adult content, violence, or inappropriate topics
-- Promote positive values and Indonesian culture
-- Encourage children to talk to parents about serious issues
-- If unsure, always redirect to educational topics
+const SAFETY_SYSTEM_PROMPT = `Kamu adalah Kaka, asisten AI yang ramah untuk anak-anak Indonesia.
 
-Keep responses short, cheerful, and age-appropriate. Use simple words and encourage learning. 🌟`;
+ATURAN PENTING:
+- Selalu menjawab dalam Bahasa Indonesia yang sederhana dan mudah dipahami anak-anak
+- Jangan pernah membahas konten dewasa, kekerasan, atau topik yang tidak pantas
+- Promosikan nilai-nilai positif dan budaya Indonesia
+- Dorong anak-anak untuk berbicara dengan orang tua tentang masalah serius
+- Jika tidak yakin, selalu arahkan ke topik pendidikan yang aman
+
+Berikan respons yang pendek, ceria, dan sesuai usia. Gunakan kata-kata sederhana dan dukung pembelajaran. Kamu adalah teman baik yang selalu positif dan membantu! 🌟`;
 
 // Enhanced comprehensive safety analysis
 function calculateSafetyScore(text: string): { 
@@ -182,20 +183,33 @@ function generateSafeResponse(filterReason?: string): string {
   return safeResponses[Math.floor(Math.random() * safeResponses.length)];
 }
 
-// Log conversation to database
+// Log conversation to database using family_conversations table
 async function logConversation(childId: string | null, content: string, messageType: 'user' | 'assistant', safetyScore: number, filtered: boolean, filterReason?: string) {
   try {
     if (!childId) return; // Skip logging if no child ID
     
+    // Get family_id from family_members table
+    const { data: familyMember } = await supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('id', childId)
+      .single();
+    
+    if (!familyMember) {
+      console.log('No family member found for child ID:', childId);
+      return;
+    }
+    
     const { error } = await supabase
-      .from('conversation_logs')
+      .from('family_conversations')
       .insert({
+        family_id: familyMember.family_id,
         child_id: childId,
+        sender: messageType === 'user' ? 'child' : 'kaka',
         message_content: content,
-        message_type: messageType,
         safety_score: safetyScore,
-        filtered_content: filtered,
-        filter_reason: filterReason
+        flagged: filtered,
+        flag_reason: filterReason
       });
       
     if (error) {
@@ -206,27 +220,30 @@ async function logConversation(childId: string | null, content: string, messageT
   }
 }
 
-// Send parent notification for concerning content
-async function notifyParent(childId: string, message: string, severity: 'low' | 'medium' | 'high' | 'critical', conversationLogId?: string) {
+// Send parent notification for concerning content using family_notifications
+async function notifyParent(childId: string, message: string, severity: 'low' | 'medium' | 'high' | 'critical') {
   try {
-    // Get parent information
-    const { data: child } = await supabase
-      .from('children')
-      .select('parent_id')
+    // Get family information from family_members table
+    const { data: familyMember } = await supabase
+      .from('family_members')
+      .select('family_id')
       .eq('id', childId)
       .single();
       
-    if (!child) return;
+    if (!familyMember) {
+      console.log('No family member found for child ID:', childId);
+      return;
+    }
     
     const { error } = await supabase
-      .from('parent_notifications')
+      .from('family_notifications')
       .insert({
-        parent_id: child.parent_id,
+        family_id: familyMember.family_id,
         child_id: childId,
         notification_type: 'content_filter',
+        title: 'Peringatan Konten',
         message,
-        severity,
-        conversation_log_id: conversationLogId
+        severity
       });
       
     if (error) {
@@ -244,8 +261,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    if (!anthropicApiKey) {
+      throw new Error('ANTHROPIC_API_KEY is not configured');
     }
 
     const { message, childId } = await req.json();
@@ -292,31 +309,31 @@ serve(async (req) => {
       });
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
+        'x-api-key': anthropicApiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: SAFETY_SYSTEM_PROMPT },
-          { role: 'user', content: message }
-        ],
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: 500,
-        temperature: 0.7,
+        system: SAFETY_SYSTEM_PROMPT,
+        messages: [
+          { role: 'user', content: message }
+        ]
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', response.status, errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Anthropic API error:', response.status, errorData);
+      throw new Error(`Anthropic API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const aiResponse = data.content[0].text;
 
     // Enhanced AI response safety check
     const responseAnalysis = calculateSafetyScore(aiResponse);
