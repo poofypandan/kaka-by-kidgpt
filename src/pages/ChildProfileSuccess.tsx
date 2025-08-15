@@ -64,8 +64,11 @@ export default function ChildProfileSuccess() {
   ];
 
   const handleStartChat = () => {
-    // Navigate to child selection, which will now properly show the new child
-    navigate('/child-selection');
+    console.log('Navigating from success page to child-selection');
+    // Add a small delay to ensure database consistency
+    setTimeout(() => {
+      navigate('/child-selection');
+    }, 100);
   };
 
   const handleSettings = () => {

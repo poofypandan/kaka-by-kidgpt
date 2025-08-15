@@ -18,17 +18,25 @@ export function useChildren() {
   const fetchChildren = async () => {
     try {
       setLoading(true);
+      
+      // Add debug logging for current user
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current authenticated user:', user?.id, user?.email);
+      
       const { data, error } = await supabase
         .from('children')
         .select('id, first_name, grade, birthdate, daily_limit_min, used_today_min')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase error fetching children:', error);
+        console.error('Error details:', error.details, error.hint, error.message);
         throw error;
       }
       
-      console.log('Fetched children:', data);
+      console.log('Successfully fetched children:', data);
+      console.log('Number of children found:', data?.length || 0);
+      
       const childrenData = data || [];
       setChildren(childrenData);
       return childrenData;

@@ -97,11 +97,15 @@ export function AddChildDialog({ onChildAdded }: AddChildDialogProps) {
       // Close modal
       setIsOpen(false);
       
-      // Navigate to success screen with child data
-      navigate(`/child-profile-success?name=${encodeURIComponent(formData.firstName)}&age=${age}`);
-      
-      // Refresh parent data
+      // Refresh parent data FIRST to ensure it's available when navigating
+      console.log('Child profile created successfully, refreshing parent data...');
       onChildAdded();
+      
+      // Small delay to ensure refresh completes, then navigate
+      setTimeout(() => {
+        console.log('Navigating to success page...');
+        navigate(`/child-profile-success?name=${encodeURIComponent(formData.firstName)}&age=${age}`);
+      }, 200);
     } catch (err) {
       console.error('Error creating child profile:', err);
       setError(err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan profil");

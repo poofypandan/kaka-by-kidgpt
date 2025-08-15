@@ -23,6 +23,12 @@ export default function ChildSelection() {
     
     // Set children in context when they change
     setChildren(children);
+    
+    // Add debugging
+    console.log('ChildSelection - Auth loading:', authLoading);
+    console.log('ChildSelection - User:', user?.id, user?.email);
+    console.log('ChildSelection - Children data:', children);
+    console.log('ChildSelection - Children length:', children.length);
   }, [user, authLoading, navigate, children, setChildren]);
 
   const handleChildSelect = (child: Child) => {
@@ -94,9 +100,14 @@ export default function ChildSelection() {
                 <p className="text-gray-600 mb-4">
                   Tambahkan profil anak terlebih dahulu di dashboard orang tua
                 </p>
-                <Button onClick={() => navigate('/parent')}>
-                  Kembali ke Dashboard
-                </Button>
+                <div className="space-y-2">
+                  <Button onClick={() => navigate('/parent')}>
+                    Kembali ke Dashboard
+                  </Button>
+                  <Button variant="outline" onClick={refreshChildren}>
+                    🔄 Refresh Data
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ) : (
