@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -61,35 +61,15 @@ const CONTENT_CATEGORIES = {
   harmful_advice: /cara bunuh|how to kill|cara menyakiti|how to hurt|cara mencuri|how to steal/i
 };
 
-// Age-appropriate content filters by grade level
-const GRADE_FILTERS = {
-  strict: { // Ages 5-7 (Grade 1-2)
-    maxComplexity: 3,
-    allowedTopics: ['animals', 'colors', 'numbers', 'family', 'food', 'toys'],
-    blockedConcepts: ['death', 'injury', 'scary', 'complex emotions']
-  },
-  moderate: { // Ages 8-10 (Grade 3-5)
-    maxComplexity: 5,
-    allowedTopics: ['science', 'geography', 'history', 'sports', 'hobbies', 'friendship'],
-    blockedConcepts: ['romantic relationships', 'complex politics', 'advanced science']
-  },
-  basic: { // Ages 11-12 (Grade 6)
-    maxComplexity: 7,
-    allowedTopics: ['all educational content'],
-    blockedConcepts: ['adult relationships', 'complex political issues']
-  }
-};
+const SAFETY_SYSTEM_PROMPT = `You are Kaka, a friendly AI assistant for Indonesian children.
+CRITICAL RULES:
+- Always respond in simple Bahasa Indonesia
+- Never discuss adult content, violence, or inappropriate topics
+- Promote positive values and Indonesian culture
+- Encourage children to talk to parents about serious issues
+- If unsure, always redirect to educational topics
 
-const SAFETY_SYSTEM_PROMPT = `Kamu adalah Kaka, asisten AI yang ramah untuk anak-anak Indonesia.
-
-ATURAN PENTING:
-- Selalu menjawab dalam Bahasa Indonesia yang sederhana dan mudah dipahami anak-anak
-- Jangan pernah membahas konten dewasa, kekerasan, atau topik yang tidak pantas
-- Promosikan nilai-nilai positif dan budaya Indonesia
-- Dorong anak-anak untuk berbicara dengan orang tua tentang masalah serius
-- Jika tidak yakin, selalu arahkan ke topik pendidikan yang aman
-
-Berikan respons yang pendek, ceria, dan sesuai usia. Gunakan kata-kata sederhana dan dukung pembelajaran. Kamu adalah teman baik yang selalu positif dan membantu! 🌟`;
+Keep responses short, cheerful, and age-appropriate. Use simple words and encourage learning. 🌟`;
 
 // Enhanced comprehensive safety analysis
 function calculateSafetyScore(text: string): { 
@@ -183,30 +163,38 @@ function generateSafeResponse(filterReason?: string): string {
   return safeResponses[Math.floor(Math.random() * safeResponses.length)];
 }
 
-// Log conversation to database using family_conversations table
-async function logConversation(childId: string | null, content: string, messageType: 'user' | 'assistant', safetyScore: number, filtered: boolean, filterReason?: string) {
+// Log conversation to family_conversations table (using existing schema)
+async function logConversation(childId: string | null, content: string, sender: 'user' | 'assistant', safetyScore: number, filtered: boolean, filterReason?: string, familyId?: string) {
   try {
-    if (!childId) return; // Skip logging if no child ID
-    
-    // Get family_id from family_members table
-    const { data: familyMember } = await supabase
-      .from('family_members')
-      .select('family_id')
-      .eq('id', childId)
-      .single();
-    
-    if (!familyMember) {
-      console.log('No family member found for child ID:', childId);
+    if (!childId) {
+      console.log('No childId provided for logging');
       return;
+    }
+    
+    // Get family info if not provided
+    let actualFamilyId = familyId;
+    if (!familyId) {
+      const { data: familyMember } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('id', childId)
+        .maybeSingle();
+      
+      if (familyMember) {
+        actualFamilyId = familyMember.family_id;
+      } else {
+        console.log('Could not find family for child:', childId);
+        return;
+      }
     }
     
     const { error } = await supabase
       .from('family_conversations')
       .insert({
-        family_id: familyMember.family_id,
+        family_id: actualFamilyId,
         child_id: childId,
-        sender: messageType === 'user' ? 'child' : 'kaka',
         message_content: content,
+        sender: sender === 'user' ? 'child' : 'kaka',
         safety_score: safetyScore,
         flagged: filtered,
         flag_reason: filterReason
@@ -214,24 +202,26 @@ async function logConversation(childId: string | null, content: string, messageT
       
     if (error) {
       console.error('Error logging conversation:', error);
+    } else {
+      console.log('Successfully logged conversation for child:', childId);
     }
   } catch (error) {
     console.error('Error in logConversation:', error);
   }
 }
 
-// Send parent notification for concerning content using family_notifications
-async function notifyParent(childId: string, message: string, severity: 'low' | 'medium' | 'high' | 'critical') {
+// Send notification to family (using existing schema)
+async function notifyFamily(childId: string, message: string, severity: 'low' | 'medium' | 'high') {
   try {
-    // Get family information from family_members table
+    // Get family information
     const { data: familyMember } = await supabase
       .from('family_members')
-      .select('family_id')
+      .select('family_id, name')
       .eq('id', childId)
-      .single();
+      .maybeSingle();
       
     if (!familyMember) {
-      console.log('No family member found for child ID:', childId);
+      console.log('Could not find family member for child:', childId);
       return;
     }
     
@@ -241,16 +231,18 @@ async function notifyParent(childId: string, message: string, severity: 'low' | 
         family_id: familyMember.family_id,
         child_id: childId,
         notification_type: 'content_filter',
-        title: 'Peringatan Konten',
+        title: `Peringatan Konten - ${familyMember.name}`,
         message,
         severity
       });
       
     if (error) {
-      console.error('Error sending parent notification:', error);
+      console.error('Error sending family notification:', error);
+    } else {
+      console.log('Successfully sent family notification for child:', childId);
     }
   } catch (error) {
-    console.error('Error in notifyParent:', error);
+    console.error('Error in notifyFamily:', error);
   }
 }
 
@@ -292,11 +284,11 @@ serve(async (req) => {
       // Handle escalation based on severity
       if (childId) {
         if (escalationLevel === 'urgent') {
-          await notifyParent(childId, `🚨 URGENT: Pesan anak mengandung konten berbahaya yang memerlukan perhatian segera: "${message.substring(0, 100)}..."`, 'critical');
+          await notifyFamily(childId, `🚨 URGENT: Pesan anak mengandung konten berbahaya yang memerlukan perhatian segera: "${message.substring(0, 100)}..."`, 'high');
         } else if (escalationLevel === 'block') {
-          await notifyParent(childId, `⚠️ Pesan anak diblokir karena konten tidak pantas: "${message.substring(0, 100)}..."`, 'high');
+          await notifyFamily(childId, `⚠️ Pesan anak diblokir karena konten tidak pantas: "${message.substring(0, 100)}..."`, 'high');
         } else if (escalationLevel === 'notify') {
-          await notifyParent(childId, `📝 Pesan anak mengandung konten yang perlu diperhatikan: "${message.substring(0, 100)}..."`, 'medium');
+          await notifyFamily(childId, `📝 Pesan anak mengandung konten yang perlu diperhatikan: "${message.substring(0, 100)}..."`, 'medium');
         }
       }
       
@@ -309,12 +301,13 @@ serve(async (req) => {
       });
     }
 
+    // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': anthropicApiKey,
+        'Authorization': `Bearer ${anthropicApiKey}`,
+        'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
       },
       body: JSON.stringify({
         model: 'claude-3-5-haiku-20241022',
@@ -322,18 +315,20 @@ serve(async (req) => {
         system: SAFETY_SYSTEM_PROMPT,
         messages: [
           { role: 'user', content: message }
-        ]
+        ],
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Anthropic API error:', response.status, errorData);
-      throw new Error(`Anthropic API error: ${response.status}`);
+      console.error('Claude API error:', response.status, errorData);
+      throw new Error(`Claude API error: ${response.status}`);
     }
 
     const data = await response.json();
     const aiResponse = data.content[0].text;
+
+    console.log('Claude API response received:', aiResponse);
 
     // Enhanced AI response safety check
     const responseAnalysis = calculateSafetyScore(aiResponse);
@@ -359,9 +354,9 @@ serve(async (req) => {
     // Log successful AI response
     await logConversation(childId, aiResponse, 'assistant', responseSafetyScore, false);
     
-    // Send parent notification for borderline content
+    // Send family notification for borderline content
     if (responseSafetyScore < 80 && responseSafetyScore >= 70 && childId) {
-      await notifyParent(childId, `Percakapan dengan konten yang perlu diperhatikan: "${aiResponse}"`, 'medium');
+      await notifyFamily(childId, `Percakapan dengan konten yang perlu diperhatian: "${aiResponse}"`, 'medium');
     }
 
     console.log('AI response generated successfully with safety score:', responseSafetyScore);
