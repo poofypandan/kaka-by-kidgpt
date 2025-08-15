@@ -13,7 +13,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Fallback responses for common questions
+// Extensive fallback responses for common questions
 const FALLBACK_RESPONSES = {
   'berapa 5+5': '5 + 5 = 10! Hebat sekali! Kamu pintar matematika! 🎉',
   'berapa 5 + 5': '5 + 5 = 10! Hebat sekali! Kamu pintar matematika! 🎉',
@@ -23,6 +23,8 @@ const FALLBACK_RESPONSES = {
   'berapa 10-5': '10 - 5 = 5! Kamu hebat! 👏',
   'berapa 3+4': '3 + 4 = 7! Wah pintar! 🎯',
   'berapa 8-3': '8 - 3 = 5! Mantap! 💪',
+  'berapa 1+1': '1 + 1 = 2! Keren! 🌟',
+  'berapa 6+4': '6 + 4 = 10! Pintar banget! 🎉',
   'halo': 'Halo! Aku Kaka, teman belajar yang seru! Ada yang bisa Kaka bantu hari ini? 🐨✨',
   'hello': 'Halo! Aku Kaka, teman belajar yang seru! Ada yang bisa Kaka bantu hari ini? 🐨✨',
   'hai': 'Hai! Aku Kaka! Senang bertemu denganmu! Mau belajar apa hari ini? 🌟',
@@ -30,18 +32,26 @@ const FALLBACK_RESPONSES = {
   'siapa kamu': 'Aku Kaka! Aku adalah teman belajar yang akan membantu kamu belajar dengan cara yang menyenangkan! 🐨📚',
   'makasih': 'Sama-sama! Kaka senang bisa membantu! Ada lagi yang mau ditanyakan? 😊✨',
   'terima kasih': 'Sama-sama! Kaka senang bisa membantu! Ada lagi yang mau ditanyakan? 😊✨',
+  'selamat pagi': 'Selamat pagi! Kaka senang bertemu denganmu! Siap belajar hal seru hari ini? 🌅✨',
+  'selamat siang': 'Selamat siang! Semoga harimu menyenangkan! Ada yang mau dipelajari? 🌞📚',
+  'selamat malam': 'Selamat malam! Wah, masih semangat belajar ya? Bagus sekali! 🌙⭐',
+  'bismillah': 'Bismillahirrahmanirrahim! Semoga Allah memudahkan belajar kita hari ini! 🤲✨',
+  'assalamualaikum': 'Waalaikumsalam warahmatullahi wabarakatuh! Selamat datang! 🤲😊'
 };
 
-// Emergency safe responses when all else fails
+// Multiple emergency responses when all else fails
 const EMERGENCY_RESPONSES = [
   "Kaka di sini untuk membantu! Coba tanya hal lain ya! 🌟",
   "Wah, itu pertanyaan yang menarik! Aku bisa ceritakan hal seru lainnya! 😊",
   "Kaka senang ngobrol sama kamu! Ada yang lain yang mau ditanyakan? ✨",
   "Ayo kita bicara tentang hal yang kamu suka! Cerita dong! 🎨",
-  "Kaka punya banyak cerita seru! Mau dengar tentang apa? 🦋"
+  "Kaka punya banyak cerita seru! Mau dengar tentang apa? 🦋",
+  "Hmm, sepertinya Kaka sedang bingung sebentar. Coba tanya yang lain ya! 🐨",
+  "Kaka lagi mikir nih! Mau coba tanya hal lain yang menarik? 🤔✨",
+  "Wah, Kaka butuh bantuan untuk yang ini. Mau bicara tentang apa lagi? 😊"
 ];
 
-// Indonesian safety filtering patterns
+// Enhanced Indonesian safety filtering patterns
 const INAPPROPRIATE_PATTERNS = [
   /\b(anjing|bangsat|babi|kampret|kontol|memek|ngentot|peler|tai|tetek|titit)\b/i,
   /\b(brengsek|bajingan|keparat|sialan|bangke|jelek amat|tolol|bodoh banget|goblok)\b/i,
@@ -59,9 +69,11 @@ CRITICAL RULES:
 - Never discuss adult content, violence, or inappropriate topics  
 - Promote positive values and Indonesian culture
 - Encourage children to talk to parents about serious issues
-- Keep responses short, cheerful, and age-appropriate
+- Keep responses short, cheerful, and age-appropriate (max 50 words)
 - Use simple words and encourage learning
 - Add emoji to make responses fun: 🌟📚🎉😊🐨✨
+- If asked about math, solve it enthusiastically
+- Encourage Islamic values when appropriate
 
 Examples:
 - Math: "Wah, hebat! 2 + 2 = 4! Kamu pintar sekali! 🎉"
@@ -82,12 +94,20 @@ function getFallbackResponse(message: string): string | null {
   
   // Check exact matches first
   if (FALLBACK_RESPONSES[cleanMessage]) {
-    console.log('✅ Found exact fallback match');
+    console.log('✅ Found exact fallback match for:', cleanMessage);
     return FALLBACK_RESPONSES[cleanMessage];
   }
   
   // Check partial matches for math questions
-  if (cleanMessage.includes('5+5') || cleanMessage.includes('5 + 5')) {
+  for (const key in FALLBACK_RESPONSES) {
+    if (cleanMessage.includes(key) || key.includes(cleanMessage)) {
+      console.log('✅ Found partial fallback match:', key);
+      return FALLBACK_RESPONSES[key];
+    }
+  }
+  
+  // Check specific math patterns
+  if (cleanMessage.includes('5+5') || cleanMessage.includes('5 + 5') || cleanMessage.includes('5 plus 5')) {
     console.log('✅ Found math fallback match for 5+5');
     return FALLBACK_RESPONSES['berapa 5+5'];
   }
@@ -179,45 +199,9 @@ async function logConversation(childId: string | null, content: string, sender: 
   }
 }
 
-async function notifyFamily(childId: string, message: string, severity: 'low' | 'medium' | 'high') {
-  try {
-    console.log('🔔 Attempting to notify family:', { childId, severity });
-    
-    const { data: familyMember, error: familyError } = await supabase
-      .from('family_members')
-      .select('family_id, name')
-      .eq('id', childId)
-      .maybeSingle();
-      
-    if (familyError || !familyMember) {
-      console.error('❌ Error fetching family member for notification:', familyError);
-      return;
-    }
-    
-    const { error: notifyError } = await supabase
-      .from('family_notifications')
-      .insert({
-        family_id: familyMember.family_id,
-        child_id: childId,
-        notification_type: 'content_filter',
-        title: `Peringatan Konten - ${familyMember.name}`,
-        message,
-        severity
-      });
-      
-    if (notifyError) {
-      console.error('❌ Error sending family notification:', notifyError);
-    } else {
-      console.log('✅ Successfully sent family notification for child:', childId);
-    }
-  } catch (error) {
-    console.error('❌ Exception in notifyFamily:', error);
-  }
-}
-
 async function callClaudeAPI(message: string): Promise<string | null> {
   try {
-    console.log('🤖 Calling Claude API with message length:', message.length);
+    console.log('🤖 Calling Claude API with message:', message);
     
     if (!anthropicApiKey) {
       console.error('❌ ANTHROPIC_API_KEY not configured');
@@ -253,8 +237,10 @@ async function callClaudeAPI(message: string): Promise<string | null> {
 
     const data = await response.json();
     console.log('✅ Claude API response received successfully');
+    console.log('🔍 Response data:', JSON.stringify(data));
     
     if (data.content && data.content[0] && data.content[0].text) {
+      console.log('✅ Extracted text from Claude response:', data.content[0].text);
       return data.content[0].text;
     } else {
       console.error('❌ Unexpected Claude API response format:', data);
@@ -262,6 +248,7 @@ async function callClaudeAPI(message: string): Promise<string | null> {
     }
   } catch (error) {
     console.error('❌ Exception calling Claude API:', error);
+    console.error('❌ Error stack:', error.stack);
     return null;
   }
 }
@@ -296,6 +283,11 @@ serve(async (req) => {
       hasAnthropicKey: !!anthropicApiKey
     });
 
+    // Log conversation attempt for child
+    if (childId && message) {
+      await logConversation(childId, message, 'child', 100, false);
+    }
+
     if (!message || typeof message !== 'string') {
       console.error('❌ Invalid message provided');
       const errorResponse = getEmergencyResponse();
@@ -317,6 +309,11 @@ serve(async (req) => {
       
       const safeResponse = generateSafeResponse();
       
+      // Log the safe response
+      if (childId) {
+        await logConversation(childId, safeResponse, 'kaka', 50, true, 'inappropriate_content');
+      }
+      
       return new Response(JSON.stringify({ 
         message: safeResponse,
         filtered: true,
@@ -328,12 +325,17 @@ serve(async (req) => {
 
     console.log('✅ Content passed safety check');
     
-    // Check for fallback responses first
+    // Check for fallback responses first (highest priority)
     console.log('🔍 Checking for fallback responses...');
     const fallbackResponse = getFallbackResponse(message);
     
     if (fallbackResponse) {
       console.log('✅ Using fallback response:', fallbackResponse);
+      
+      // Log the fallback response
+      if (childId) {
+        await logConversation(childId, fallbackResponse, 'kaka', 100, false);
+      }
       
       return new Response(JSON.stringify({ 
         message: fallbackResponse,
@@ -356,6 +358,11 @@ serve(async (req) => {
         console.log('⚠️ AI response filtered for safety');
         const safeResponse = generateSafeResponse();
         
+        // Log the filtered response
+        if (childId) {
+          await logConversation(childId, safeResponse, 'kaka', 50, true, 'ai_response_filtered');
+        }
+        
         return new Response(JSON.stringify({ 
           message: safeResponse,
           filtered: true,
@@ -363,6 +370,11 @@ serve(async (req) => {
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
+      
+      // Log the successful AI response
+      if (childId) {
+        await logConversation(childId, aiResponse, 'kaka', 100, false);
       }
       
       return new Response(JSON.stringify({ 
@@ -374,9 +386,14 @@ serve(async (req) => {
       });
     }
 
-    // Fallback when API fails
+    // Final fallback when API fails
     console.log('⚠️ Claude API failed, using emergency fallback');
     const emergencyResponse = getEmergencyResponse();
+    
+    // Log the emergency response
+    if (childId) {
+      await logConversation(childId, emergencyResponse, 'kaka', 75, false, 'api_failure');
+    }
     
     return new Response(JSON.stringify({ 
       message: emergencyResponse,
