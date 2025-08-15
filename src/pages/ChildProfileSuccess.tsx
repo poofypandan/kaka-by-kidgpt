@@ -72,7 +72,14 @@ export default function ChildProfileSuccess() {
   };
 
   const handleSettings = () => {
-    navigate('/parent');
+    navigate('/family-dashboard');
+  };
+
+  const handleGoToDashboard = () => {
+    console.log('Navigating to family dashboard');
+    setTimeout(() => {
+      navigate('/family-dashboard');
+    }, 100);
   };
 
   return (
@@ -142,11 +149,11 @@ export default function ChildProfileSuccess() {
           
           <Button 
             variant="outline"
-            onClick={handleSettings}
+            onClick={handleGoToDashboard}
             className="w-full h-12 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
           >
             <Settings className="w-4 h-4 mr-2" />
-            Atur pengaturan dulu
+            Lihat Dashboard Keluarga
           </Button>
         </div>
 

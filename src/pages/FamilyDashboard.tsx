@@ -36,6 +36,17 @@ interface FamilyMember {
   phone?: string;
 }
 
+interface Child {
+  id: string;
+  first_name: string;
+  grade: number;
+  birthdate?: string;
+  daily_limit_min: number;
+  used_today_min: number;
+  parent_id: string;
+  user_id: string;
+}
+
 interface Family {
   id: string;
   name: string;
@@ -67,7 +78,7 @@ export default function FamilyDashboard() {
   
   const [family, setFamily] = useState<Family | null>(null);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
-  const [children, setChildren] = useState<FamilyMember[]>([]);
+  const [children, setChildren] = useState<Child[]>([]);
   const [parents, setParents] = useState<FamilyMember[]>([]);
   const [notifications, setNotifications] = useState<FamilyNotification[]>([]);
   const [childSessions, setChildSessions] = useState<ChildSession[]>([]);
@@ -85,64 +96,112 @@ export default function FamilyDashboard() {
     try {
       setLoading(true);
       
-      // Get family and user role
-      const { data: familyMemberData, error: memberError } = await supabase
-        .from('family_members')
-        .select(`
-          id,
-          role,
-          family_id,
-          families (
-            id,
-            name,
-            invite_code,
-            invite_expires_at
-          )
-        `)
-        .eq('user_id', (await supabase.from('users').select('id').eq('auth_user_id', user?.id).single()).data?.id)
-        .single();
+      // Get current user info first
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      console.log('FamilyDashboard - Current auth user:', authUser?.id);
+      
+      // Check if user has parent record, if not this is likely using children system directly
+      const { data: parentData, error: parentError } = await supabase
+        .from('parents')
+        .select('id, user_id')
+        .eq('user_id', (await supabase.from('users').select('id').eq('auth_user_id', authUser?.id).single()).data?.id)
+        .maybeSingle();
 
-      if (memberError) throw memberError;
-
-      setCurrentUserRole(familyMemberData.role);
-      setFamily(familyMemberData.families);
-
-      // Get all family members
-      const { data: allMembers, error: allMembersError } = await supabase
-        .from('family_members')
-        .select('*')
-        .eq('family_id', familyMemberData.family_id);
-
-      if (allMembersError) throw allMembersError;
-
-      setFamilyMembers(allMembers as FamilyMember[]);
-      setChildren(allMembers.filter(m => m.role === 'child') as FamilyMember[]);
-      setParents(allMembers.filter(m => m.role !== 'child') as FamilyMember[]);
-
-      // Get notifications for parents
-      if (familyMemberData.role !== 'child') {
-        const { data: notificationData, error: notificationError } = await supabase
-          .from('family_notifications')
+      console.log('FamilyDashboard - Parent data:', parentData);
+      
+      if (parentData) {
+        // User is using the children/parents system - load children directly
+        setCurrentUserRole('parent');
+        
+        // Get children from children table
+        const { data: childrenData, error: childrenError } = await supabase
+          .from('children')
           .select('*')
-          .eq('family_id', familyMemberData.family_id)
-          .order('created_at', { ascending: false })
-          .limit(10);
+          .eq('parent_id', parentData.id);
+          
+        console.log('FamilyDashboard - Children data:', childrenData);
+        
+        if (!childrenError) {
+          setChildren(childrenData || []);
+        }
+        
+        // Set empty family for now
+        setFamily({ id: 'legacy', name: 'Keluarga' });
+        setFamilyMembers([]);
+        setParents([]);
+      } else {
+        // Try family system as fallback
+        try {
+          const { data: familyMemberData, error: memberError } = await supabase
+            .from('family_members')
+            .select(`
+              id,
+              role,
+              family_id,
+              families (
+                id,
+                name,
+                invite_code,
+                invite_expires_at
+              )
+            `)
+            .eq('user_id', (await supabase.from('users').select('id').eq('auth_user_id', authUser?.id).single()).data?.id)
+            .single();
 
-        if (!notificationError) {
-          setNotifications((notificationData || []) as FamilyNotification[]);
+          if (!memberError) {
+            setCurrentUserRole(familyMemberData.role);
+            setFamily(familyMemberData.families);
+
+            // Get all family members
+            const { data: allMembers, error: allMembersError } = await supabase
+              .from('family_members')
+              .select('*')
+              .eq('family_id', familyMemberData.family_id);
+
+            if (!allMembersError) {
+              setFamilyMembers(allMembers as FamilyMember[]);
+              // Convert family members to children format where needed
+              const familyChildren = allMembers.filter(m => m.role === 'child');
+              const convertedChildren = familyChildren.map(fc => ({
+                id: fc.id,
+                first_name: fc.name,
+                grade: Math.floor((fc.age || 6) / 2), // Rough estimate
+                birthdate: undefined,
+                daily_limit_min: fc.daily_time_limit || 60,
+                used_today_min: 0,
+                parent_id: '',
+                user_id: fc.user_id
+              }));
+              setChildren(convertedChildren);
+              setParents(allMembers.filter(m => m.role !== 'child') as FamilyMember[]);
+            }
+          }
+        } catch (familyError) {
+          console.log('No family data found, showing empty state');
+          setCurrentUserRole('parent');
+          setFamily({ id: 'none', name: 'Keluarga' });
+          setChildren([]);
+          setFamilyMembers([]);
+          setParents([]);
         }
       }
 
+      // Get notifications (skip for now to avoid errors)
+      setNotifications([]);
+
       // Get today's child sessions
       const today = new Date().toISOString().split('T')[0];
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('child_sessions')
-        .select('*')
-        .gte('started_at', today)
-        .in('child_id', allMembers.filter(m => m.role === 'child').map(c => c.id));
+      const childIds = children.map(c => c.id);
+      if (childIds.length > 0) {
+        const { data: sessionData, error: sessionError } = await supabase
+          .from('child_sessions')
+          .select('*')
+          .gte('started_at', today)
+          .in('child_id', childIds);
 
-      if (!sessionError) {
-        setChildSessions(sessionData || []);
+        if (!sessionError) {
+          setChildSessions(sessionData || []);
+        }
       }
 
     } catch (error: any) {
@@ -350,60 +409,60 @@ export default function FamilyDashboard() {
                     Status aktivitas dan keamanan hari ini
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {children.map((child) => {
-                    const safety = getSafetyStatus(child.id);
-                    const todayUsage = getTodayUsage(child.id);
-                    
-                return (
-                  <div 
-                    key={child.id} 
-                    className="group flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 hover:bg-accent/5 transition-all duration-200 cursor-pointer"
-                    onClick={() => navigate(`/child/${child.id}`)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="group-hover:scale-105 transition-transform">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {child.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium group-hover:text-primary transition-colors">{child.name}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {todayUsage}/{child.daily_time_limit} menit hari ini
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={safety.color as any}>
-                        {safety.label}
-                      </Badge>
-                      <Button 
-                        size="sm" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startChildSession(child.id);
-                        }}
-                        className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MessageCircle className="h-3 w-3" />
-                        Chat
-                      </Button>
-                    </div>
-                  </div>
-                );
-                  })}
+                 <CardContent className="space-y-4">
+                   {children.map((child) => {
+                     const safety = getSafetyStatus(child.id);
+                     const todayUsage = getTodayUsage(child.id);
+                     
+                 return (
+                   <div 
+                     key={child.id} 
+                     className="group flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 hover:bg-accent/5 transition-all duration-200 cursor-pointer"
+                     onClick={() => navigate(`/child/${child.id}`)}
+                   >
+                     <div className="flex items-center gap-3">
+                       <Avatar className="group-hover:scale-105 transition-transform">
+                         <AvatarFallback className="bg-primary text-primary-foreground">
+                           {child.first_name.charAt(0)}
+                         </AvatarFallback>
+                       </Avatar>
+                       <div>
+                         <p className="font-medium group-hover:text-primary transition-colors">{child.first_name}</p>
+                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                           <Clock className="h-3 w-3" />
+                           {todayUsage}/{child.daily_limit_min} menit hari ini
+                         </div>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-2">
+                       <Badge variant={safety.color as any}>
+                         {safety.label}
+                       </Badge>
+                       <Button 
+                         size="sm" 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           startChildSession(child.id);
+                         }}
+                         className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                       >
+                         <MessageCircle className="h-3 w-3" />
+                         Chat
+                       </Button>
+                     </div>
+                   </div>
+                 );
+                   })}
                   
-                  {children.length === 0 && (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">Belum ada anak yang ditambahkan</p>
-                      <Button onClick={() => navigate('/add-child')}>
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Tambah Anak
-                      </Button>
-                    </div>
-                  )}
+                   {children.length === 0 && (
+                     <div className="text-center py-8">
+                       <p className="text-muted-foreground mb-4">Belum ada anak yang ditambahkan</p>
+                       <Button onClick={() => navigate('/parent')}>
+                         <UserPlus className="h-4 w-4 mr-2" />
+                         Tambah Anak
+                       </Button>
+                     </div>
+                   )}
                 </CardContent>
               </Card>
 
@@ -472,18 +531,18 @@ export default function FamilyDashboard() {
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4 mb-4">
-                        <Avatar className="h-16 w-16 group-hover:scale-105 transition-transform">
-                          <AvatarFallback className="text-xl bg-primary text-primary-foreground">
-                            {child.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                            {child.name}
-                          </h3>
-                          <p className="text-muted-foreground">
-                            {child.age ? `${child.age} tahun` : 'Anak'}
-                          </p>
+                         <Avatar className="h-16 w-16 group-hover:scale-105 transition-transform">
+                           <AvatarFallback className="text-xl bg-primary text-primary-foreground">
+                             {child.first_name.charAt(0)}
+                           </AvatarFallback>
+                         </Avatar>
+                         <div className="flex-1">
+                           <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                             {child.first_name}
+                           </h3>
+                           <p className="text-muted-foreground">
+                             Kelas {child.grade}
+                           </p>
                           <div className="flex items-center gap-2 mt-2">
                             <Badge variant={safety.color as any}>
                               {safety.label}
@@ -493,16 +552,16 @@ export default function FamilyDashboard() {
                       </div>
                       
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Waktu hari ini</span>
-                          <span className="font-medium">{todayUsage}/{child.daily_time_limit} menit</span>
-                        </div>
-                        
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full transition-all"
-                            style={{ width: `${Math.min((todayUsage / child.daily_time_limit) * 100, 100)}%` }}
-                          />
+                         <div className="flex items-center justify-between text-sm">
+                           <span className="text-muted-foreground">Waktu hari ini</span>
+                           <span className="font-medium">{todayUsage}/{child.daily_limit_min} menit</span>
+                         </div>
+                         
+                         <div className="w-full bg-muted rounded-full h-2">
+                           <div 
+                             className="bg-primary h-2 rounded-full transition-all"
+                             style={{ width: `${Math.min((todayUsage / child.daily_limit_min) * 100, 100)}%` }}
+                           />
                         </div>
                         
                         <div className="flex gap-2 pt-2">

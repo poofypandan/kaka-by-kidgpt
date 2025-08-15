@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useDemoMode } from '@/hooks/useDemoMode';
 import { AuthGuard } from '@/components/AuthGuard';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ function ParentDashboard() {
   const { isDemoMode, demoData, exitDemo } = useDemoMode();
   const { children: fetchedChildren, loading, refreshChildren } = useChildren();
   const [children, setChildren] = useState<any[]>([]);
+  const navigate = useNavigate();
   
   // Add loading state and auth check
   if (authLoading) {
@@ -30,6 +31,15 @@ function ParentDashboard() {
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
+
+  // For demo mode, continue to current dashboard
+  // For real users, redirect to family dashboard
+  useEffect(() => {
+    if (!isDemoMode && user) {
+      console.log('Redirecting to family dashboard...');
+      navigate('/family-dashboard', { replace: true });
+    }
+  }, [isDemoMode, user, navigate]);
 
   useEffect(() => {
     // Use demo data if in demo mode, otherwise use fetched children
