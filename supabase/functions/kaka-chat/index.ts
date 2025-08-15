@@ -19,6 +19,10 @@ const FALLBACK_RESPONSES = {
   'berapa 5 + 5': '5 + 5 = 10! Hebat sekali! Kamu pintar matematika! 🎉',
   'brp 5+5': '5 + 5 = 10! Hebat sekali! Kamu pintar matematika! 🎉',
   '5+5': '5 + 5 = 10! Hebat sekali! Kamu pintar matematika! 🎉',
+  'berapa 2+3': '2 + 3 = 5! Bagus banget! 🌟',
+  'berapa 10-5': '10 - 5 = 5! Kamu hebat! 👏',
+  'berapa 3+4': '3 + 4 = 7! Wah pintar! 🎯',
+  'berapa 8-3': '8 - 3 = 5! Mantap! 💪',
   'halo': 'Halo! Aku Kaka, teman belajar yang seru! Ada yang bisa Kaka bantu hari ini? 🐨✨',
   'hello': 'Halo! Aku Kaka, teman belajar yang seru! Ada yang bisa Kaka bantu hari ini? 🐨✨',
   'hai': 'Hai! Aku Kaka! Senang bertemu denganmu! Mau belajar apa hari ini? 🌟',
@@ -27,6 +31,15 @@ const FALLBACK_RESPONSES = {
   'makasih': 'Sama-sama! Kaka senang bisa membantu! Ada lagi yang mau ditanyakan? 😊✨',
   'terima kasih': 'Sama-sama! Kaka senang bisa membantu! Ada lagi yang mau ditanyakan? 😊✨',
 };
+
+// Emergency safe responses when all else fails
+const EMERGENCY_RESPONSES = [
+  "Kaka di sini untuk membantu! Coba tanya hal lain ya! 🌟",
+  "Wah, itu pertanyaan yang menarik! Aku bisa ceritakan hal seru lainnya! 😊",
+  "Kaka senang ngobrol sama kamu! Ada yang lain yang mau ditanyakan? ✨",
+  "Ayo kita bicara tentang hal yang kamu suka! Cerita dong! 🎨",
+  "Kaka punya banyak cerita seru! Mau dengar tentang apa? 🦋"
+];
 
 // Indonesian safety filtering patterns
 const INAPPROPRIATE_PATTERNS = [
@@ -65,21 +78,38 @@ function containsInappropriateContent(text: string): boolean {
 function getFallbackResponse(message: string): string | null {
   const cleanMessage = message.toLowerCase().trim().replace(/[?!.]/g, '');
   
+  console.log('🔍 Checking fallback for message:', cleanMessage);
+  
   // Check exact matches first
   if (FALLBACK_RESPONSES[cleanMessage]) {
+    console.log('✅ Found exact fallback match');
     return FALLBACK_RESPONSES[cleanMessage];
   }
   
   // Check partial matches for math questions
   if (cleanMessage.includes('5+5') || cleanMessage.includes('5 + 5')) {
+    console.log('✅ Found math fallback match for 5+5');
     return FALLBACK_RESPONSES['berapa 5+5'];
   }
   
+  if (cleanMessage.includes('2+3') || cleanMessage.includes('2 + 3')) {
+    console.log('✅ Found math fallback match for 2+3');
+    return FALLBACK_RESPONSES['berapa 2+3'];
+  }
+  
   if (cleanMessage.includes('halo') || cleanMessage.includes('hello') || cleanMessage.includes('hai')) {
+    console.log('✅ Found greeting fallback match');
     return FALLBACK_RESPONSES['halo'];
   }
   
+  console.log('❌ No fallback match found');
   return null;
+}
+
+function getEmergencyResponse(): string {
+  const response = EMERGENCY_RESPONSES[Math.floor(Math.random() * EMERGENCY_RESPONSES.length)];
+  console.log('🚨 Using emergency response:', response);
+  return response;
 }
 
 function generateSafeResponse(): string {
@@ -238,6 +268,10 @@ async function callClaudeAPI(message: string): Promise<string | null> {
 
 serve(async (req) => {
   console.log('🚀 Kaka chat function started');
+  console.log('🔧 Environment check:');
+  console.log('  - SUPABASE_URL:', !!supabaseUrl);
+  console.log('  - SUPABASE_SERVICE_ROLE_KEY:', !!supabaseServiceKey);
+  console.log('  - ANTHROPIC_API_KEY:', !!anthropicApiKey);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -249,17 +283,30 @@ serve(async (req) => {
     console.log('📥 Processing request...');
     
     const requestBody = await req.json();
-    const { message, childId } = requestBody;
+    console.log('📋 Full request body:', JSON.stringify(requestBody, null, 2));
+    
+    const { message, childId, childGrade, childName } = requestBody;
     
     console.log('📊 Request details:', {
       messageLength: message?.length || 0,
+      messageContent: message,
       childId: childId || 'not provided',
+      childGrade: childGrade || 'not provided',
+      childName: childName || 'not provided',
       hasAnthropicKey: !!anthropicApiKey
     });
 
     if (!message || typeof message !== 'string') {
       console.error('❌ Invalid message provided');
-      throw new Error('Message is required and must be a string');
+      const errorResponse = getEmergencyResponse();
+      return new Response(JSON.stringify({ 
+        message: errorResponse,
+        error: 'Message is required and must be a string',
+        source: 'validation_error'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('🔍 Checking for inappropriate content...');
@@ -270,16 +317,10 @@ serve(async (req) => {
       
       const safeResponse = generateSafeResponse();
       
-      if (childId) {
-        await logConversation(childId, message, 'child', 30, false);
-        await logConversation(childId, safeResponse, 'kaka', 100, true, 'Inappropriate content detected');
-        await notifyFamily(childId, `Pesan anak mengandung konten yang perlu diperhatikan: "${message.substring(0, 100)}..."`, 'medium');
-      }
-      
       return new Response(JSON.stringify({ 
-        response: safeResponse,
+        message: safeResponse,
         filtered: true,
-        safetyScore: 30
+        source: 'safety_filter'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -287,27 +328,17 @@ serve(async (req) => {
 
     console.log('✅ Content passed safety check');
     
-    // Log user message
-    if (childId) {
-      await logConversation(childId, message, 'child', 100, false);
-    }
-    
     // Check for fallback responses first
     console.log('🔍 Checking for fallback responses...');
     const fallbackResponse = getFallbackResponse(message);
     
     if (fallbackResponse) {
-      console.log('✅ Using fallback response');
-      
-      if (childId) {
-        await logConversation(childId, fallbackResponse, 'kaka', 100, false);
-      }
+      console.log('✅ Using fallback response:', fallbackResponse);
       
       return new Response(JSON.stringify({ 
-        response: fallbackResponse,
-        filtered: false,
-        safetyScore: 100,
-        source: 'fallback'
+        message: fallbackResponse,
+        source: 'fallback',
+        filtered: false
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -318,35 +349,26 @@ serve(async (req) => {
     const aiResponse = await callClaudeAPI(message);
     
     if (aiResponse) {
-      console.log('✅ Claude API succeeded');
+      console.log('✅ Claude API succeeded with response:', aiResponse);
       
       // Check AI response for safety
       if (containsInappropriateContent(aiResponse)) {
         console.log('⚠️ AI response filtered for safety');
         const safeResponse = generateSafeResponse();
         
-        if (childId) {
-          await logConversation(childId, safeResponse, 'kaka', 100, true, 'AI response filtered for safety');
-        }
-        
         return new Response(JSON.stringify({ 
-          response: safeResponse,
+          message: safeResponse,
           filtered: true,
-          safetyScore: 100
+          source: 'ai_filtered'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       
-      if (childId) {
-        await logConversation(childId, aiResponse, 'kaka', 100, false);
-      }
-      
       return new Response(JSON.stringify({ 
-        response: aiResponse,
-        filtered: false,
-        safetyScore: 100,
-        source: 'claude'
+        message: aiResponse,
+        source: 'claude',
+        filtered: false
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -354,29 +376,25 @@ serve(async (req) => {
 
     // Fallback when API fails
     console.log('⚠️ Claude API failed, using emergency fallback');
-    const emergencyResponse = 'Maaf, Kaka sedang sedikit bingung. Tapi Kaka tetap di sini untuk membantumu! Coba tanya yang lain ya! 😊✨';
-    
-    if (childId) {
-      await logConversation(childId, emergencyResponse, 'kaka', 100, false);
-    }
+    const emergencyResponse = getEmergencyResponse();
     
     return new Response(JSON.stringify({ 
-      response: emergencyResponse,
-      filtered: false,
-      safetyScore: 100,
-      source: 'emergency_fallback'
+      message: emergencyResponse,
+      source: 'emergency_fallback',
+      filtered: false
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('❌ Error in kaka-chat function:', error);
+    console.error('❌ Error stack:', error.stack);
     
-    const errorResponse = 'Maaf, Kaka sedang istirahat sebentar. Coba lagi nanti ya! 😊';
+    const errorResponse = getEmergencyResponse();
     
     return new Response(JSON.stringify({ 
+      message: errorResponse,
       error: 'Internal server error',
-      response: errorResponse,
       source: 'error_fallback'
     }), {
       status: 500,
