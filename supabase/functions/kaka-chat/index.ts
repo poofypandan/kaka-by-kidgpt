@@ -86,25 +86,86 @@ const INAPPROPRIATE_PATTERNS = [
   /\b(takut|scared|nightmare|mimpi buruk|hantu|ghost|setan|devil)\b/i,
 ];
 
+// Math-aware content filtering functions
+function isEducationalMathContent(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  
+  // Mathematical operators and terms in Indonesian
+  const mathKeywords = [
+    'kali', 'tambah', 'kurang', 'bagi', 'dibagi', 'plus', 'minus',
+    'berapa', 'hitungan', 'matematika', 'math', 'soal', 'jawaban'
+  ];
+  
+  // Mathematical symbols and patterns
+  const mathPatterns = [
+    /\d+\s*[\+\-\*\/x×÷]\s*\d+/i,          // Basic math operations
+    /\d+\s*kali\s*\d+/i,                   // Indonesian multiplication 
+    /\d+\s*tambah\s*\d+/i,                 // Indonesian addition
+    /\d+\s*kurang\s*\d+/i,                 // Indonesian subtraction
+    /\d+\s*bagi\s*\d+/i,                   // Indonesian division
+    /berapa\s+\d+\s*(kali|tambah|kurang|bagi)/i, // "berapa X kali Y"
+    /kalau\s+\d+\s*kali\s*\d+/i           // "kalau 300 kali 5"
+  ];
+  
+  // Check for math keywords
+  const hasMathKeywords = mathKeywords.some(keyword => lowerText.includes(keyword));
+  
+  // Check for math patterns
+  const hasMathPattern = mathPatterns.some(pattern => pattern.test(lowerText));
+  
+  return hasMathKeywords || hasMathPattern;
+}
+
+function contextAwareSafetyCheck(text: string): {
+  isAppropriate: boolean;
+  category: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  reason: string;
+  isEducational: boolean;
+} {
+  // First check if it's educational math content
+  const isEducational = isEducationalMathContent(text);
+  
+  if (isEducational) {
+    console.log('✅ Educational math content detected, skipping strict safety filters');
+    return {
+      isAppropriate: true,
+      category: 'educational_math',
+      severity: 'low',
+      reason: 'Educational mathematics content',
+      isEducational: true
+    };
+  }
+  
+  // For non-educational content, use standard safety check
+  const standardCheck = checkContentSafety(text);
+  
+  return {
+    ...standardCheck,
+    isEducational: false
+  };
+}
+
 const SAFETY_SYSTEM_PROMPT = `You are Kaka, a friendly AI assistant for Indonesian children aged 6-12.
 
 CRITICAL RULES:
 - Always respond in simple, warm Bahasa Indonesia
+- LOVE MATHEMATICS! Be extremely enthusiastic about math questions and homework help
 - Never discuss adult content, violence, or inappropriate topics  
 - Promote positive values and Indonesian culture
 - Encourage children to talk to parents about serious issues
 - Keep responses short, cheerful, and age-appropriate (max 50 words)
 - Use simple words and encourage learning
 - Add emoji to make responses fun: 🌟📚🎉😊🐨✨
-- If asked about math, solve it enthusiastically
+- For math questions, solve step by step and celebrate their learning!
 - Encourage Islamic values when appropriate
 
 Examples:
-- Math: "Wah, hebat! 2 + 2 = 4! Kamu pintar sekali! 🎉"
+- Math: "Wah, 300 × 5 = 1,500! Hebat sekali! Kamu pintar matematika! 🎉🔢"
 - Greeting: "Halo! Aku Kaka! Senang bertemu denganmu! 🐨✨"
 - Learning: "Ayo kita belajar hal seru! Kamu mau tahu tentang apa? 📚🌟"
 
-Keep responses under 50 words and always encouraging! 🌟`;
+ESPECIALLY love helping with math homework and calculations! 🎯🔢✨`;
 
 // COMPREHENSIVE safety check with detailed categorization
 function checkContentSafety(text: string): {
@@ -422,8 +483,8 @@ serve(async (req) => {
 
     console.log('🔍 CRITICAL SAFETY CHECK: Checking for inappropriate content...');
     
-    // COMPREHENSIVE SAFETY CHECK - BLOCKS INAPPROPRIATE CONTENT BEFORE API CALL
-    const safetyCheck = checkContentSafety(message);
+    // CONTEXT-AWARE SAFETY CHECK - ALLOWS EDUCATIONAL CONTENT
+    const safetyCheck = contextAwareSafetyCheck(message);
     
     if (!safetyCheck.isAppropriate) {
       console.log(`🚨 CONTENT BLOCKED! Category: ${safetyCheck.category}, Severity: ${safetyCheck.severity}, Reason: ${safetyCheck.reason}`);
@@ -451,7 +512,34 @@ serve(async (req) => {
 
     console.log('✅ Content passed safety check');
     
-    // Check for fallback responses first (highest priority)
+    // Fast-track educational math content
+    if (safetyCheck.isEducational) {
+      console.log('🎯 Fast-tracking educational math content to Claude API');
+      
+      // For math content, try Claude API first for better responses
+      const aiResponse = await callClaudeAPI(message);
+      
+      if (aiResponse) {
+        console.log('✅ Claude API succeeded for math content:', aiResponse);
+        
+        // Log the successful math response
+        if (childId) {
+          await logConversation(childId, aiResponse, 'kaka', 100, false);
+        }
+        
+        return new Response(JSON.stringify({ 
+          message: aiResponse,
+          source: 'claude_math',
+          filtered: false
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      console.log('⚠️ Claude API failed for math, using math fallbacks');
+    }
+    
+    // Check for fallback responses (for non-educational or if Claude failed)
     console.log('🔍 Checking for fallback responses...');
     const fallbackResponse = getFallbackResponse(message);
     

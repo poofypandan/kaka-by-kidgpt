@@ -55,8 +55,49 @@ const TOPIC_CATEGORIES = {
   inappropriate_social: /benci|hate|bodoh|stupid|jelek|ugly|gendut|fat/i
 };
 
+// Math-aware content filtering functions for frontend
+function isEducationalMathContent(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  
+  // Mathematical operators and terms in Indonesian
+  const mathKeywords = [
+    'kali', 'tambah', 'kurang', 'bagi', 'dibagi', 'plus', 'minus',
+    'berapa', 'hitungan', 'matematika', 'math', 'soal', 'jawaban'
+  ];
+  
+  // Mathematical symbols and patterns
+  const mathPatterns = [
+    /\d+\s*[\+\-\*\/x×÷]\s*\d+/i,          // Basic math operations
+    /\d+\s*kali\s*\d+/i,                   // Indonesian multiplication 
+    /\d+\s*tambah\s*\d+/i,                 // Indonesian addition
+    /\d+\s*kurang\s*\d+/i,                 // Indonesian subtraction
+    /\d+\s*bagi\s*\d+/i,                   // Indonesian division
+    /berapa\s+\d+\s*(kali|tambah|kurang|bagi)/i, // "berapa X kali Y"
+    /kalau\s+\d+\s*kali\s*\d+/i           // "kalau 300 kali 5"
+  ];
+  
+  // Check for math keywords
+  const hasMathKeywords = mathKeywords.some(keyword => lowerText.includes(keyword));
+  
+  // Check for math patterns
+  const hasMathPattern = mathPatterns.some(pattern => pattern.test(lowerText));
+  
+  return hasMathKeywords || hasMathPattern;
+}
+
 // Enhanced safety check with comprehensive Indonesian filtering
 export function quickSafetyCheck(text: string): SafetyResult {
+  // First check if it's educational math content - allow it through with high score
+  if (isEducationalMathContent(text)) {
+    return {
+      score: 100,
+      isAppropriate: true,
+      reasons: ['Educational mathematics content'],
+      severity: 'low',
+      categories: ['educational_math']
+    };
+  }
+
   let score = 100;
   const reasons: string[] = [];
   const categories: string[] = [];
@@ -158,6 +199,11 @@ export function comprehensiveSafetyAnalysis(text: string): {
 }
 
 export function shouldWarnUser(text: string): boolean {
+  // Skip warnings for obvious math questions
+  if (isEducationalMathContent(text)) {
+    return false;
+  }
+  
   const result = quickSafetyCheck(text);
   return !result.isAppropriate;
 }
