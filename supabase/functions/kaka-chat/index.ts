@@ -2,6 +2,60 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Import safety logging utility
+async function logSafetyIncident(
+  childId: string, 
+  message: string, 
+  safetyResult: any, 
+  supabaseClient: any
+) {
+  try {
+    console.log('📝 Logging safety incident for parental review');
+    
+    const { data: familyMember } = await supabaseClient
+      .from('family_members')
+      .select('family_id, name')
+      .eq('id', childId)
+      .single();
+
+    if (!familyMember) return;
+
+    await supabaseClient
+      .from('family_conversations')
+      .insert({
+        family_id: familyMember.family_id,
+        child_id: childId,
+        sender: 'child',
+        message_content: message.substring(0, 500),
+        safety_score: safetyResult.score,
+        flagged: true,
+        flag_reason: safetyResult.reason || 'Safety concern detected',
+        parent_reviewed: false
+      });
+
+    if (safetyResult.severity === 'medium' || safetyResult.severity === 'high') {
+      const notificationMessage = safetyResult.severity === 'high' 
+        ? `Pesan dengan tingkat keamanan tinggi terdeteksi dari ${familyMember.name}. Silakan tinjau percakapan.`
+        : `Pesan yang memerlukan perhatian terdeteksi dari ${familyMember.name}. Silakan tinjau jika perlu.`;
+
+      await supabaseClient
+        .from('family_notifications')
+        .insert({
+          family_id: familyMember.family_id,
+          child_id: childId,
+          notification_type: 'safety_alert',
+          title: 'Peringatan Keamanan',
+          message: notificationMessage,
+          severity: safetyResult.severity,
+          read_by_primary: false,
+          read_by_secondary: false
+        });
+    }
+  } catch (error) {
+    console.error('Error logging safety incident:', error);
+  }
+}
+
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
@@ -186,212 +240,232 @@ STRICT RULES:
 Always remember: You are a digital sibling who protects and educates!`
 };
 
-// COMPREHENSIVE safety check with detailed categorization
-function checkContentSafety(text: string): {
-  isAppropriate: boolean;
-  category: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  reason: string;
-} {
-  const lowerText = text.toLowerCase();
-  
-  // Check for sexual content (CRITICAL)
-  if (/\b(seks|sex|telanjang|naked|bugil|porn|porno|xxx|masturbasi|onani|ciuman|kiss|pacaran)\b/i.test(lowerText)) {
-    return {
-      isAppropriate: false,
-      category: 'sexual_content',
-      severity: 'critical',
-      reason: 'Sexual content detected'
-    };
-  }
-  
-  // Check for violence (HIGH)
-  if (/\b(bunuh|kill|mati|death|berkelahi|fight|pukul|hit|darah|blood|senjata|weapon)\b/i.test(lowerText)) {
-    return {
-      isAppropriate: false,
-      category: 'violence',
-      severity: 'high',
-      reason: 'Violence content detected'
-    };
-  }
-  
-  // Check for substances (HIGH)
-  if (/\b(narkoba|drugs|mabuk|drunk|alkohol|alcohol|rokok|cigarette)\b/i.test(lowerText)) {
-    return {
-      isAppropriate: false,
-      category: 'substances',
-      severity: 'high',
-      reason: 'Substance abuse content detected'
-    };
-  }
-  
-  // Check for profanity (MEDIUM)
-  if (/\b(anjing|bangsat|babi|kampret|kontol|memek|ngentot|fuck|shit|damn|bitch)\b/i.test(lowerText)) {
-    return {
-      isAppropriate: false,
-      category: 'profanity',
-      severity: 'medium',
-      reason: 'Inappropriate language detected'
-    };
-  }
-  
-  // Check for personal info (HIGH)
-  if (/\b(alamat|address|nomor hp|phone|password|email|sekolah|school)\b/i.test(lowerText)) {
-    return {
-      isAppropriate: false,
-      category: 'personal_info',
-      severity: 'high',
-      reason: 'Personal information sharing detected'
-    };
-  }
-  
-  return {
-    isAppropriate: true,
-    category: 'safe',
-    severity: 'low',
-    reason: 'Content is appropriate'
-  };
-}
-
-// Legacy function for backwards compatibility
-function containsInappropriateContent(text: string): boolean {
-  return !checkContentSafety(text).isAppropriate;
-}
-
-function getFallbackResponse(message: string): string | null {
-  const cleanMessage = message.toLowerCase().trim().replace(/[?!.]/g, '');
-  
-  console.log('🔍 Checking fallback for message:', cleanMessage);
-  
-  // Check exact matches first
-  if (FALLBACK_RESPONSES[cleanMessage]) {
-    console.log('✅ Found exact fallback match for:', cleanMessage);
-    return FALLBACK_RESPONSES[cleanMessage];
-  }
-  
-  // Check partial matches for math questions
-  for (const key in FALLBACK_RESPONSES) {
-    if (cleanMessage.includes(key) || key.includes(cleanMessage)) {
-      console.log('✅ Found partial fallback match:', key);
-      return FALLBACK_RESPONSES[key];
-    }
-  }
-  
-  // Check specific math patterns
-  if (cleanMessage.includes('5+5') || cleanMessage.includes('5 + 5') || cleanMessage.includes('5 plus 5')) {
-    console.log('✅ Found math fallback match for 5+5');
-    return FALLBACK_RESPONSES['berapa 5+5'];
-  }
-  
-  if (cleanMessage.includes('2+3') || cleanMessage.includes('2 + 3')) {
-    console.log('✅ Found math fallback match for 2+3');
-    return FALLBACK_RESPONSES['berapa 2+3'];
-  }
-  
-  if (cleanMessage.includes('halo') || cleanMessage.includes('hello') || cleanMessage.includes('hai')) {
-    console.log('✅ Found greeting fallback match');
-    return FALLBACK_RESPONSES['halo'];
-  }
-  
-  console.log('❌ No fallback match found');
-  return null;
-}
-
-function getEmergencyResponse(): string {
-  const response = EMERGENCY_RESPONSES[Math.floor(Math.random() * EMERGENCY_RESPONSES.length)];
-  console.log('🚨 Using emergency response:', response);
-  return response;
-}
-
-// Generate appropriate safety response based on severity
-function generateSafeResponse(category: string, severity: string): string {
-  console.log(`🛡️ Generating safety response for category: ${category}, severity: ${severity}`);
-  
-  const responses = {
-    sexual_content: [
-      "⚠️ Wah, topik ini terlalu dewasa untuk Kaka bahas. Bagaimana kalau kita bicara tentang hal yang lebih seru? Aku bisa ceritakan tentang hewan lucu! 🐨✨",
-      "⚠️ Kaka hanya suka membahas hal-hal yang menyenangkan dan aman! Mau dengar cerita petualangan atau bermain game edukatif? 🌟📚"
+// ENHANCED Inclusive Safety Filters (Multilingual)
+const INCLUSIVE_SAFETY_FILTERS = {
+  inappropriate_language: {
+    id: [
+      // Indonesian profanity patterns (educational detection)
+      /\b(anjing|babi|goblok|tolol|bangsat|kampret|sialan|brengsek)\b/gi,
+      /\b(tai|puki|memek|kontol|ngentot|pepek)\b/gi,
+      // Hate speech patterns
+      /\b(kafir|pribumi|cina|indon|aseng)\b/gi,
+      // Bullying terms
+      /\b(jelek|bodoh|gendut|kurus|hitam|putih)\s+(banget|sekali)/gi
     ],
-    violence: [
-      "⚠️ Kaka tidak suka membahas hal-hal yang menyakitkan. Ayo kita bicara tentang hal yang menyenangkan! Mau dengar tentang superhero yang menolong orang? 🦸‍♀️✨",
-      "⚠️ Wah, bagaimana kalau kita bicara tentang persahabatan dan kebaikan? Kaka punya cerita seru tentang gotong royong! 🤝🌟"
-    ],
-    substances: [
-      "⚠️ Topik ini tidak cocok untuk anak-anak. Mau Kaka ceritakan tentang makanan sehat yang enak? Atau olahraga yang seru? 🥗⚽",
-      "⚠️ Kaka lebih suka membahas hal-hal yang menyehatkan! Mau belajar tentang buah-buahan atau sayuran yang enak? 🍎🥕"
-    ],
-    profanity: [
-      "⚠️ Kata-kata itu kurang sopan ya. Kaka suka anak yang bicara dengan baik dan santun! Mau belajar kata-kata yang indah? 😊🌟",
-      "⚠️ Ayo gunakan kata-kata yang baik dan sopan! Kaka bisa ajarin kata-kata yang lebih indah dan bermakna! 💫📚"
-    ],
-    personal_info: [
-      "⚠️ Jangan ceritakan informasi pribadi ya! Untuk keamanan, lebih baik kita bicara tentang hobi atau pelajaran saja! 🛡️✨",
-      "⚠️ Demi keamanan, jangan bagikan informasi pribadi. Mau cerita tentang buku atau film favorit saja? 📖🎬"
-    ],
-    default: [
-      "⚠️ Hmm, bagaimana kalau kita bicara tentang hal yang lebih seru? Aku bisa ceritakan tentang hewan lucu atau permainan seru! 🐨✨",
-      "⚠️ Wah, aku lebih suka membahas hal-hal yang menyenangkan! Mau dengar cerita tentang petualangan atau belajar hal baru? 🌟📚"
+    en: [
+      // English inappropriate content
+      /\b(stupid|idiot|dumb|ugly|fat|skinny|freak|loser)\b/gi,
+      /\b(shut\s+up|go\s+away|i\s+hate\s+you)\b/gi,
+      /\b(f[u*][c*]k|sh[i*]t|d[a*]mn|b[i*]tch|a[s*]s)\b/gi,
+      /\b(racist|discrimination|prejudice)\b/gi
     ]
-  };
-  
-  const categoryResponses = responses[category as keyof typeof responses] || responses.default;
-  return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
-}
+  },
 
-async function logConversation(childId: string | null, content: string, sender: 'child' | 'kaka', safetyScore: number, filtered: boolean, filterReason?: string) {
-  try {
-    console.log('🔄 Attempting to log conversation:', {
-      childId,
-      sender,
-      contentLength: content.length,
-      safetyScore,
-      filtered
-    });
+  universal_concerns: {
+    violence: {
+      patterns: [
+        /\b(fight|hit|punch|kick|hurt|pain|blood|weapon|gun|knife|sword)\b/gi,
+        /\b(kill|murder|die|death|suicide|self.harm)\b/gi,
+        /\b(war|battle|attack|bomb|explosion|terrorism)\b/gi,
+        /\b(berkelahi|pukul|tendang|sakiti|darah|senjata|pisau|bunuh|mati)\b/gi,
+        /\b(perang|serangan|bom|ledakan|terorisme)\b/gi
+      ],
+      severity: 'high' as const,
+      response: {
+        id: 'Aku tidak bisa membahas hal-hal yang bisa menyakiti orang. Ayo kita bicara tentang hal yang menyenangkan!',
+        en: "I can't discuss things that might hurt people. Let's talk about something fun instead!"
+      }
+    },
+    
+    personal_info: {
+      patterns: [
+        /\b(address|alamat|rumah\s+saya|my\s+house)\b/gi,
+        /\b(phone|telepon|nomor\s+hp|handphone)\b/gi,
+        /\b(email|surel|@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/gi,
+        /\b(school\s+name|nama\s+sekolah|sekolah\s+saya|my\s+school)\b/gi,
+        /\b(full\s+name|nama\s+lengkap|kelas\s+berapa|what\s+grade)\b/gi,
+        /\b(\+?62|0)[0-9\s\-]{8,}\b/gi,
+        /\b[0-9]{3}\-?[0-9]{3}\-?[0-9]{4}\b/gi
+      ],
+      severity: 'high' as const,
+      response: {
+        id: 'Jangan berikan informasi pribadi seperti alamat, nomor telepon, atau nama sekolah ya. Keamananmu penting!',
+        en: "Don't share personal information like addresses, phone numbers, or school names. Your safety is important!"
+      }
+    },
 
-    if (!childId) {
-      console.log('⚠️ No childId provided for logging');
-      return;
+    emotional_distress: {
+      patterns: [
+        /\b(sad|sedih|menangis|cry|lonely|kesepian)\b/gi,
+        /\b(scared|takut|afraid|worried|khawatir|cemas)\b/gi,
+        /\b(angry|marah|mad|upset|kesal|benci)\b/gi,
+        /\b(depressed|depresi|hopeless|putus\s+asa)\b/gi,
+        /\b(bullied|di\-?bully|dijahili|diganggu)\b/gi
+      ],
+      severity: 'medium' as const,
+      response: {
+        id: 'Aku mengerti kamu sedang merasa tidak baik. Coba ceritakan ke ayah atau ibu ya? Mereka pasti bisa membantu.',
+        en: "I understand you're not feeling good. Try talking to your mom or dad? They can definitely help."
+      }
+    },
+
+    adult_content: {
+      patterns: [
+        /\b(dating|pacaran|boyfriend|girlfriend|pacar)\b/gi,
+        /\b(kiss|ciuman|hug|peluk|romantic|romantis)\b/gi,
+        /\b(marriage|menikah|wedding|pernikahan)\b/gi,
+        /\b(body\s+parts|bagian\s+tubuh|private\s+parts)\b/gi
+      ],
+      severity: 'medium' as const,
+      response: {
+        id: 'Itu topik untuk orang dewasa. Ayo kita bicara tentang hal lain yang seru!',
+        en: "That's a topic for adults. Let's talk about something else that's fun!"
+      }
     }
-    
-    // Get family info for the child
-    const { data: familyMember, error: familyError } = await supabase
-      .from('family_members')
-      .select('family_id')
-      .eq('id', childId)
-      .maybeSingle();
-    
-    if (familyError) {
-      console.error('❌ Error fetching family member:', familyError);
-      return;
+  },
+
+  cultural_sensitivity: {
+    religious_respect: {
+      patterns: [
+        /\b(islam|muslim|christian|kristen|hindu|buddha|katolik|protestan)\b/gi,
+        /\b(prayer|doa|sholat|gereja|masjid|temple|kuil)\b/gi,
+        /\b(god|allah|tuhan|jesus|yesus|muhammad|buddha)\b/gi
+      ],
+      response: {
+        id: 'Semua agama itu baik dan mengajarkan kebaikan. Aku menghormati semua kepercayaan.',
+        en: 'All religions are good and teach kindness. I respect all beliefs.'
+      }
+    },
+
+    family_diversity: {
+      patterns: [
+        /\b(single\s+parent|orang\s+tua\s+tunggal)\b/gi,
+        /\b(divorced|bercerai|stepfather|stepmother|ayah\s+tiri|ibu\s+tiri)\b/gi,
+        /\b(adopted|adopsi|foster|asuh)\b/gi,
+        /\b(grandparents|kakek|nenek|guardian|wali)\b/gi
+      ],
+      response: {
+        id: 'Setiap keluarga itu spesial dengan caranya masing-masing. Yang penting ada kasih sayang!',
+        en: 'Every family is special in their own way. What matters is that there is love!'
+      }
     }
-    
-    if (!familyMember) {
-      console.log('⚠️ Could not find family for child:', childId);
-      return;
-    }
-    
-    console.log('✅ Found family for child:', familyMember.family_id);
-    
-    const { error: insertError } = await supabase
-      .from('family_conversations')
-      .insert({
-        family_id: familyMember.family_id,
-        child_id: childId,
-        message_content: content,
-        sender: sender,
-        safety_score: safetyScore,
-        flagged: filtered,
-        flag_reason: filterReason
-      });
-      
-    if (insertError) {
-      console.error('❌ Error logging conversation:', insertError);
-    } else {
-      console.log('✅ Successfully logged conversation for child:', childId);
-    }
-  } catch (error) {
-    console.error('❌ Exception in logConversation:', error);
+  },
+
+  positive_triggers: {
+    learning: [
+      /\b(learn|belajar|study|homework|pr|tugas|school|sekolah)\b/gi,
+      /\b(math|matematika|science|sains|reading|membaca|writing|menulis)\b/gi
+    ],
+    creativity: [
+      /\b(draw|menggambar|paint|melukis|create|membuat|imagine|bayangkan)\b/gi,
+      /\b(story|cerita|song|lagu|dance|tari|music|musik)\b/gi
+    ],
+    kindness: [
+      /\b(help|membantu|kind|baik|share|berbagi|friend|teman)\b/gi,
+      /\b(thank|terima\s+kasih|please|tolong|sorry|maaf)\b/gi
+    ]
   }
+};
+
+// Enhanced safety check with inclusive patterns
+function checkInclusiveSafety(text: string, language: string = 'id'): {
+  score: number;
+  flags: string[];
+  severity: 'low' | 'medium' | 'high';
+  shouldBlock: boolean;
+  response?: string;
+  reason?: string;
+} {
+  let score = 100;
+  const flags: string[] = [];
+  let highestSeverity: 'low' | 'medium' | 'high' = 'low';
+  let suggestedResponse: string | undefined;
+  let blockReason: string | undefined;
+
+  console.log('🔍 Checking inclusive safety for:', text.substring(0, 100));
+
+  // Check inappropriate language
+  const langFilters = INCLUSIVE_SAFETY_FILTERS.inappropriate_language[language as 'id' | 'en'] || 
+                     INCLUSIVE_SAFETY_FILTERS.inappropriate_language.id;
+  
+  for (const pattern of langFilters) {
+    if (pattern.test(text)) {
+      score -= 30;
+      flags.push('inappropriate_language');
+      highestSeverity = 'high';
+      blockReason = 'Inappropriate language detected';
+      console.log('⚠️ Inappropriate language detected');
+    }
+  }
+
+  // Check universal concerns
+  for (const [concernType, concern] of Object.entries(INCLUSIVE_SAFETY_FILTERS.universal_concerns)) {
+    if (typeof concern === 'object' && 'patterns' in concern) {
+      for (const pattern of concern.patterns) {
+        if (pattern.test(text)) {
+          const severityPenalty = concern.severity === 'high' ? 40 : concern.severity === 'medium' ? 25 : 15;
+          score -= severityPenalty;
+          flags.push(concernType);
+          
+          if (concern.severity === 'high' || (concern.severity === 'medium' && highestSeverity === 'low')) {
+            highestSeverity = concern.severity;
+            suggestedResponse = concern.response[language as 'id' | 'en'] || concern.response.id;
+            blockReason = `${concernType} content detected`;
+          }
+          console.log(`⚠️ ${concernType} concern detected (${concern.severity})`);
+        }
+      }
+    }
+  }
+
+  // Check cultural sensitivity (informational, not penalizing)
+  for (const [sensitivityType, sensitivity] of Object.entries(INCLUSIVE_SAFETY_FILTERS.cultural_sensitivity)) {
+    if (typeof sensitivity === 'object' && 'patterns' in sensitivity) {
+      for (const pattern of sensitivity.patterns) {
+        if (pattern.test(text)) {
+          flags.push(`cultural_${sensitivityType}`);
+          if (!suggestedResponse) {
+            suggestedResponse = sensitivity.response[language as 'id' | 'en'] || sensitivity.response.id;
+          }
+          console.log(`ℹ️ Cultural sensitivity topic: ${sensitivityType}`);
+        }
+      }
+    }
+  }
+
+  // Boost score for positive content
+  for (const [positiveType, patterns] of Object.entries(INCLUSIVE_SAFETY_FILTERS.positive_triggers)) {
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        score += 5;
+        flags.push(`positive_${positiveType}`);
+        console.log(`✨ Positive content detected: ${positiveType}`);
+      }
+    }
+  }
+
+  // Math content boost (educational priority)
+  if (/\b(math|matematika|hitung|calculate|plus|minus|kali|bagi|angka|number)\b/gi.test(text)) {
+    score += 10;
+    flags.push('educational_math');
+    console.log('📚 Educational math content detected');
+  }
+
+  // Ensure score bounds
+  score = Math.max(0, Math.min(100, score));
+
+  const shouldBlock = score < 60 || highestSeverity === 'high';
+
+  console.log(`🎯 Safety check result: score=${score}, severity=${highestSeverity}, shouldBlock=${shouldBlock}`);
+
+  return {
+    score,
+    flags,
+    severity: highestSeverity,
+    shouldBlock,
+    response: suggestedResponse,
+    reason: blockReason
+  };
 }
 
 async function callClaudeAPI(message: string, language: string = 'id'): Promise<string | null> {
@@ -500,40 +574,46 @@ serve(async (req) => {
       });
     }
 
-    console.log('🔍 CRITICAL SAFETY CHECK: Checking for inappropriate content...');
+    // Enhanced inclusive safety check
+    console.log('🔐 Running enhanced inclusive safety check...');
+    const safetyResult = checkInclusiveSafety(message, language);
     
-    // CONTEXT-AWARE SAFETY CHECK - ALLOWS EDUCATIONAL CONTENT
-    const safetyCheck = contextAwareSafetyCheck(message);
-    
-    if (!safetyCheck.isAppropriate) {
-      console.log(`🚨 CONTENT BLOCKED! Category: ${safetyCheck.category}, Severity: ${safetyCheck.severity}, Reason: ${safetyCheck.reason}`);
+    console.log('🔍 Safety check details:', {
+      score: safetyResult.score,
+      flags: safetyResult.flags,
+      severity: safetyResult.severity,
+      shouldBlock: safetyResult.shouldBlock,
+      reason: safetyResult.reason
+    });
+
+    // Block unsafe content with culturally appropriate response
+    if (safetyResult.shouldBlock) {
+      console.log('🚫 Content blocked due to safety concerns');
       
-      const safeResponse = generateSafeResponse(safetyCheck.category, safetyCheck.severity);
+      const blockedResponse = safetyResult.response || (language === 'id' 
+        ? 'Maaf, aku tidak bisa membahas hal itu. Ayo kita bicara tentang hal yang menyenangkan dan aman!' 
+        : "Sorry, I can't discuss that. Let's talk about something fun and safe!");
+
+      // Log safety incident for parental review
+      await logSafetyIncident(childId, message, safetyResult, supabase);
       
-      // Log the blocked content and safety response
-      if (childId) {
-        console.log('📝 Logging safety violation and response');
-        await logConversation(childId, message, 'child', 25, true, `${safetyCheck.category}_blocked_${safetyCheck.severity}`);
-        await logConversation(childId, safeResponse, 'kaka', 50, true, 'safety_response');
-      }
-      
-      return new Response(JSON.stringify({ 
-        message: safeResponse,
-        filtered: true,
-        source: 'safety_filter',
-        category: safetyCheck.category,
-        severity: safetyCheck.severity,
-        warning: '⚠️ Peringatan Keamanan: Konten tidak pantas untuk anak-anak'
+      return new Response(JSON.stringify({
+        success: true,
+        response: blockedResponse,
+        safetyScore: safetyResult.score,
+        flags: safetyResult.flags,
+        blocked: true
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
       });
     }
 
-    console.log('✅ Content passed safety check');
+    console.log('✅ Content passed inclusive safety check');
     
     // Fast-track educational math content
-    if (safetyCheck.isEducational) {
-      console.log('🎯 Fast-tracking educational math content to Claude API');
+    if (isEducationalMathContent(message)) {
+      console.log('🎯 Fast-tracking educational content with enhanced cultural sensitivity');
       
       // For math content, try Claude API first for better responses
       const aiResponse = await callClaudeAPI(message, language);
@@ -586,23 +666,25 @@ serve(async (req) => {
     if (aiResponse) {
       console.log('✅ Claude API succeeded with response:', aiResponse);
       
-      // DOUBLE-CHECK AI response for safety (secondary filter)
-      const aiSafetyCheck = checkContentSafety(aiResponse);
-      if (!aiSafetyCheck.isAppropriate) {
-        console.log(`⚠️ AI response filtered for safety! Category: ${aiSafetyCheck.category}, Severity: ${aiSafetyCheck.severity}`);
-        const safeResponse = generateSafeResponse(aiSafetyCheck.category, aiSafetyCheck.severity);
+      // DOUBLE-CHECK AI response for inclusive safety (secondary filter)
+      const aiSafetyCheck = checkInclusiveSafety(aiResponse, language);
+      if (aiSafetyCheck.shouldBlock) {
+        console.log(`⚠️ AI response filtered for safety! Severity: ${aiSafetyCheck.severity}, Reason: ${aiSafetyCheck.reason}`);
+        const safeResponse = aiSafetyCheck.response || (language === 'id' 
+          ? 'Maaf, aku tidak bisa memberikan jawaban itu. Mari bicara tentang hal lain yang menyenangkan!'
+          : "Sorry, I can't provide that answer. Let's talk about something else that's fun!");
         
         // Log the filtered response
         if (childId) {
-          await logConversation(childId, safeResponse, 'kaka', 50, true, `ai_response_filtered_${aiSafetyCheck.category}`);
+          await logConversation(childId, safeResponse, 'kaka', 50, true, `ai_response_filtered_${aiSafetyCheck.severity}`);
         }
         
         return new Response(JSON.stringify({ 
           message: safeResponse,
           filtered: true,
           source: 'ai_filtered',
-          category: aiSafetyCheck.category,
-          severity: aiSafetyCheck.severity
+          severity: aiSafetyCheck.severity,
+          safetyScore: aiSafetyCheck.score
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
