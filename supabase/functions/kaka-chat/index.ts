@@ -16,13 +16,21 @@ const corsHeaders = {
 // Math fallback responses for when API fails
 const MATH_FALLBACKS = {
   '3+3': '3 + 3 = 6! Wah, pintar! Matematika itu menyenangkan! 🧮✨',
+  '3+3berapa': '3 + 3 = 6! Wah, pintar! Matematika itu menyenangkan! 🧮✨',
   '4+10': '4 + 10 = 14! Keren sekali! Kamu hebat dalam penjumlahan! 🌟',
+  '4+10berapa': '4 + 10 = 14! Keren sekali! Kamu hebat dalam penjumlahan! 🌟',
   '7-2': '7 - 2 = 5! Bagus banget! Pengurangan juga kamu kuasai! 👏',
+  '7-2berapa': '7 - 2 = 5! Bagus banget! Pengurangan juga kamu kuasai! 👏',
   '2+2': '2 + 2 = 4! Mudah ya? Tapi tetap hebat! 🎉',
+  '2+2berapa': '2 + 2 = 4! Mudah ya! Tapi tetap hebat! 🎉',
   '5+5': '5 + 5 = 10! Pintar sekali! 🎯',
+  '5+5berapa': '5 + 5 = 10! Pintar sekali! 🎯',
   '10-5': '10 - 5 = 5! Mantap! 💪',
+  '10-5berapa': '10 - 5 = 5! Mantap! 💪',
   '6+3': '6 + 3 = 9! Wah, kamu jago! 😊',
-  '8-4': '8 - 4 = 4! Benar sekali! 🌟'
+  '6+3berapa': '6 + 3 = 9! Wah, kamu jago! 😊',
+  '8-4': '8 - 4 = 4! Benar sekali! 🌟',
+  '8-4berapa': '8 - 4 = 4! Benar sekali! 🌟'
 };
 
 // Simple safety check - allows educational content like math
@@ -189,6 +197,9 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    console.log('🔑 OpenAI API Key available:', !!openAIApiKey);
+    console.log('🔑 API Key length:', openAIApiKey ? openAIApiKey.length : 0);
 
     console.log('🤖 Calling OpenAI API...');
     
