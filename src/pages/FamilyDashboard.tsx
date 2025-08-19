@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { 
   Users, 
   UserPlus, 
@@ -74,6 +76,7 @@ interface FamilyNotification {
 
 export default function FamilyDashboard() {
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   
   const [family, setFamily] = useState<Family | null>(null);
@@ -352,9 +355,11 @@ export default function FamilyDashboard() {
             </div>
             
             <div className="flex items-center gap-4">
+              <LanguageToggle />
+              
               <Badge variant="outline" className="hidden md:flex">
-                {currentUserRole === 'primary_parent' ? 'Orang Tua Utama' :
-                 currentUserRole === 'secondary_parent' ? 'Orang Tua Kedua' : 'Anak'}
+                {currentUserRole === 'primary_parent' ? t('family.primaryParent') :
+                 currentUserRole === 'secondary_parent' ? t('family.secondaryParent') : 'Anak'}
               </Badge>
               
               <Button variant="outline" size="icon" className="relative">
@@ -371,7 +376,7 @@ export default function FamilyDashboard() {
               </Button>
               
               <Button variant="ghost" onClick={handleSignOut}>
-                Keluar
+                {t('auth.logout')}
               </Button>
             </div>
           </div>

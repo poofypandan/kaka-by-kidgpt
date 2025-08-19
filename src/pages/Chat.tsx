@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { Mic, Send, Home, Settings, Shield, AlertTriangle } from 'lucide-react';
 import { FloatingKoala, WavingKoala, TwinkleStar, FloatingHeart } from '@/components/KoalaCharacters';
 import { Navigate } from 'react-router-dom';
@@ -23,10 +25,11 @@ interface Message {
 export default function Chat() {
   const { user, loading } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Halo! Aku Kaka! 🐨 Ada yang ingin kamu tanyakan hari ini?',
+      content: t('chat.welcome'),
       sender: 'kaka',
       timestamp: new Date()
     }
@@ -221,7 +224,8 @@ export default function Chat() {
                 <p className="text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>Sahabat belajar terbaik!</p>
               </div>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
+              <LanguageToggle />
               <Button variant="ghost" size="sm" className="text-red-indonesia">
                 <Settings className="h-4 w-4" />
               </Button>

@@ -8,10 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { Users, UserPlus, LogIn, Phone, Shield, Heart } from 'lucide-react';
 
 export default function FamilyAuth() {
   const { user, loading, signInWithEmail, signUpWithEmail } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   
   // Form states
@@ -159,7 +162,10 @@ export default function FamilyAuth() {
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-secondary/20 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 relative">
+          <div className="absolute top-0 right-0">
+            <LanguageToggle />
+          </div>
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 bg-primary rounded-full">
               <Heart className="h-8 w-8 text-primary-foreground" />
@@ -167,10 +173,10 @@ export default function FamilyAuth() {
             <h1 className="text-3xl font-bold text-primary">Kaka by KidGPT</h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            Platform AI Aman untuk Keluarga Indonesia
+            {t('auth.welcomeMessage')}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Monitoring orang tua • Nilai-nilai Islami • Keamanan anak
+            {t('cultural.pancasilaValues')}
           </p>
         </div>
 
