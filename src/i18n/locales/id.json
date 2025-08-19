@@ -1,0 +1,123 @@
+{
+  "navigation": {
+    "home": "Beranda",
+    "chat": "Chat",
+    "activities": "Aktivitas",
+    "settings": "Pengaturan",
+    "profile": "Profil",
+    "dashboard": "Dashboard",
+    "subscription": "Berlangganan"
+  },
+  "auth": {
+    "login": "Masuk",
+    "signup": "Daftar",
+    "logout": "Keluar",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "confirmPassword": "Konfirmasi Kata Sandi",
+    "forgotPassword": "Lupa Kata Sandi?",
+    "noAccount": "Belum punya akun?",
+    "hasAccount": "Sudah punya akun?",
+    "signInWithGoogle": "Masuk dengan Google",
+    "welcome": "Selamat Datang di Kaka",
+    "welcomeMessage": "Platform belajar yang aman untuk keluarga Indonesia"
+  },
+  "family": {
+    "title": "Keluarga Saya",
+    "createFamily": "Buat Keluarga Baru",
+    "joinFamily": "Gabung Keluarga",
+    "familyName": "Nama Keluarga",
+    "parentName": "Nama Orang Tua",
+    "parentPhone": "Nomor Telepon",
+    "inviteCode": "Kode Undangan",
+    "children": "Anak-anak",
+    "addChild": "Tambah Anak",
+    "childName": "Nama Anak",
+    "childAge": "Umur Anak",
+    "primaryParent": "Orang Tua Utama",
+    "secondaryParent": "Orang Tua Kedua",
+    "permissions": "Izin"
+  },
+  "subscription": {
+    "title": "Pilih Paket Berlangganan",
+    "growingMinds": "Growing Minds",
+    "brightFutures": "Bright Futures",
+    "geniusMinds": "Genius Minds",
+    "monthly": "per bulan",
+    "features": {
+      "basicChat": "Chat dasar dengan Kaka",
+      "safetyFilter": "Filter keamanan tingkat tinggi",
+      "parentDashboard": "Dashboard orang tua",
+      "unlimitedChat": "Chat tidak terbatas",
+      "voiceInput": "Input suara",
+      "advancedAnalytics": "Analitik lanjutan",
+      "priority": "Dukungan prioritas",
+      "multiChild": "Multi-anak (hingga 5)",
+      "customization": "Kustomisasi pembelajaran",
+      "expertSupport": "Dukungan ahli pendidikan"
+    },
+    "selectPlan": "Pilih Paket",
+    "currentPlan": "Paket Saat Ini",
+    "manageBilling": "Kelola Tagihan",
+    "cancelSubscription": "Batalkan Berlangganan"
+  },
+  "chat": {
+    "title": "Chat dengan Kaka",
+    "placeholder": "Ketik pesan Anda di sini...",
+    "send": "Kirim",
+    "voiceInput": "Input Suara",
+    "startRecording": "Mulai Merekam",
+    "stopRecording": "Berhenti Merekam",
+    "typing": "Kaka sedang mengetik...",
+    "welcome": "Halo! Aku Kaka! Ada yang bisa aku bantu? 🐨",
+    "safetyWarning": "⚠️ Peringatan Keamanan",
+    "safetyMessage": "Pesan ini mengandung konten yang mungkin tidak pantas. Coba gunakan kata-kata yang lebih baik! 🌟",
+    "emergencyContact": "Kontak Darurat"
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "language": "Bahasa",
+    "notifications": "Notifikasi",
+    "privacy": "Privasi",
+    "safety": "Keamanan",
+    "timeLimit": "Batas Waktu",
+    "contentFilter": "Filter Konten",
+    "islamicContent": "Konten Islami"
+  },
+  "dashboard": {
+    "title": "Dashboard Keluarga",
+    "overview": "Ringkasan",
+    "activeChildren": "Anak Aktif",
+    "totalUsage": "Total Penggunaan",
+    "safetyAlerts": "Peringatan Keamanan",
+    "weeklyReport": "Laporan Mingguan"
+  },
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "loading": "Memuat...",
+    "success": "Berhasil",
+    "error": "Terjadi kesalahan",
+    "confirm": "Konfirmasi",
+    "minutes": "menit",
+    "hours": "jam",
+    "days": "hari",
+    "weeks": "minggu",
+    "months": "bulan"
+  },
+  "mobile": {
+    "touchTarget": "Sentuh untuk melanjutkan",
+    "swipeGesture": "Geser untuk navigasi",
+    "voiceCommand": "Perintah suara aktif",
+    "offlineMode": "Mode offline tersedia"
+  },
+  "cultural": {
+    "pancasilaValues": "Nilai-nilai Pancasila",
+    "indonesianWisdom": "Kearifan Indonesia",
+    "respectElders": "Hormat kepada yang lebih tua",
+    "communitySpirit": "Semangat gotong royong",
+    "religiousTolerance": "Toleransi beragama"
+  }
+}

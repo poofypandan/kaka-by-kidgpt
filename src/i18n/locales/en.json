@@ -1,0 +1,123 @@
+{
+  "navigation": {
+    "home": "Home",
+    "chat": "Chat",
+    "activities": "Activities",
+    "settings": "Settings",
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "subscription": "Subscription"
+  },
+  "auth": {
+    "login": "Sign In",
+    "signup": "Sign Up",
+    "logout": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signInWithGoogle": "Sign in with Google",
+    "welcome": "Welcome to Kaka",
+    "welcomeMessage": "Safe learning platform for Indonesian families"
+  },
+  "family": {
+    "title": "My Family",
+    "createFamily": "Create New Family",
+    "joinFamily": "Join Family",
+    "familyName": "Family Name",
+    "parentName": "Parent Name",
+    "parentPhone": "Phone Number",
+    "inviteCode": "Invite Code",
+    "children": "Children",
+    "addChild": "Add Child",
+    "childName": "Child Name",
+    "childAge": "Child Age",
+    "primaryParent": "Primary Parent",
+    "secondaryParent": "Secondary Parent",
+    "permissions": "Permissions"
+  },
+  "subscription": {
+    "title": "Choose Your Plan",
+    "growingMinds": "Growing Minds",
+    "brightFutures": "Bright Futures",
+    "geniusMinds": "Genius Minds",
+    "monthly": "per month",
+    "features": {
+      "basicChat": "Basic chat with Kaka",
+      "safetyFilter": "High-level safety filtering",
+      "parentDashboard": "Parent dashboard",
+      "unlimitedChat": "Unlimited chat",
+      "voiceInput": "Voice input",
+      "advancedAnalytics": "Advanced analytics",
+      "priority": "Priority support",
+      "multiChild": "Multi-child support (up to 5)",
+      "customization": "Learning customization",
+      "expertSupport": "Educational expert support"
+    },
+    "selectPlan": "Select Plan",
+    "currentPlan": "Current Plan",
+    "manageBilling": "Manage Billing",
+    "cancelSubscription": "Cancel Subscription"
+  },
+  "chat": {
+    "title": "Chat with Kaka",
+    "placeholder": "Type your message here...",
+    "send": "Send",
+    "voiceInput": "Voice Input",
+    "startRecording": "Start Recording",
+    "stopRecording": "Stop Recording",
+    "typing": "Kaka is typing...",
+    "welcome": "Hello! I'm Kaka! How can I help you? 🐨",
+    "safetyWarning": "⚠️ Safety Warning",
+    "safetyMessage": "This message contains content that may not be appropriate. Try using better words! 🌟",
+    "emergencyContact": "Emergency Contact"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "safety": "Safety",
+    "timeLimit": "Time Limit",
+    "contentFilter": "Content Filter",
+    "islamicContent": "Islamic Content"
+  },
+  "dashboard": {
+    "title": "Family Dashboard",
+    "overview": "Overview",
+    "activeChildren": "Active Children",
+    "totalUsage": "Total Usage",
+    "safetyAlerts": "Safety Alerts",
+    "weeklyReport": "Weekly Report"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "An error occurred",
+    "confirm": "Confirm",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "weeks": "weeks",
+    "months": "months"
+  },
+  "mobile": {
+    "touchTarget": "Touch to continue",
+    "swipeGesture": "Swipe to navigate",
+    "voiceCommand": "Voice command active",
+    "offlineMode": "Offline mode available"
+  },
+  "cultural": {
+    "pancasilaValues": "Pancasila Values",
+    "indonesianWisdom": "Indonesian Wisdom",
+    "respectElders": "Respect for elders",
+    "communitySpirit": "Community spirit",
+    "religiousTolerance": "Religious tolerance"
+  }
+}

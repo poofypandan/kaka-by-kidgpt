@@ -23,6 +23,7 @@ import ChildProfile from "./pages/ChildProfile";
 import ChildChat from "./pages/ChildChat";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,11 @@ const App = () => (
                 <Route path="/child-profile-success" element={
                   <AuthGuard>
                     <ChildProfileSuccess />
+                  </AuthGuard>
+                } />
+                <Route path="/subscription" element={
+                  <AuthGuard>
+                    <Subscription />
                   </AuthGuard>
                 } />
                 <Route path="*" element={<NotFound />} />
