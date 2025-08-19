@@ -91,21 +91,23 @@ export default function Chat() {
     setShowSafetyWarning(false);
 
     try {
-      // Get current child ID (you'll need to implement this based on your auth system)
-      const currentUser = user;
-      const childId = currentUser?.id; // Adjust this based on your data structure
+      console.log('🔄 Sending message to Kaka:', currentMessage);
 
       const { data, error } = await supabase.functions.invoke('kaka-chat', {
         body: { 
           message: currentMessage,
-          childId: childId 
+          childId: user?.id || 'anonymous',
+          childGrade: 3, // You can get this from user profile later
+          childName: user?.email || 'Anonymous'
         }
       });
 
       if (error) {
-        console.error('Error calling Kaka:', error);
-        throw error;
+        console.error('❌ Supabase function error:', error);
+        throw new Error(error.message || 'Function call failed');
       }
+
+      console.log('✅ Kaka response received:', data);
 
       const kakaMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -118,32 +120,36 @@ export default function Chat() {
       
       setMessages(prev => [...prev, kakaMessage]);
 
-      // Show enhanced toast if content was filtered
+      // Enhanced success handling with safety notifications
       if (data.filtered) {
         toast({
-          title: "🛡️ Pesan diamankan",
-          description: "Kaka hanya membahas hal-hal yang aman dan menyenangkan!",
+          title: "🛡️ Pesan Aman",
+          description: "Kaka memastikan percakapan tetap aman untuk kamu!",
+          variant: "default",
         });
       }
 
       // Show safety score for transparency (only in development)
-      if (process.env.NODE_ENV === 'development' && data.safetyScore) {
+      if (import.meta.env.DEV && data.safetyScore) {
         console.log('Safety Score:', data.safetyScore);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
+
+    } catch (error: any) {
+      console.error('❌ Chat error:', error);
+      
+      // User-friendly error handling with Kaka personality
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Maaf, Kaka sedang istirahat sebentar. Coba lagi nanti ya! 😊",
+        content: "Maaf, Kaka sedang bermasalah. Coba lagi sebentar ya! 🔧",
         sender: 'kaka',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
 
       toast({
-        title: "Oops!",
-        description: "Koneksi terputus. Coba lagi ya!",
-        variant: "destructive"
+        title: "Koneksi Bermasalah",
+        description: "Kaka sedang istirahat. Coba lagi dalam beberapa menit ya!",
+        variant: "destructive",
       });
     } finally {
       setIsKakaSpeaking(false);
