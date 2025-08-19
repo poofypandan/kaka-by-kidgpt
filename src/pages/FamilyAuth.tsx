@@ -54,7 +54,7 @@ export default function FamilyAuth() {
   const handleCreateFamily = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!familyName.trim() || !parentName.trim() || !parentPhone.trim() || !email.trim() || !password.trim()) {
-      toast.error('Mohon lengkapi semua data');
+      toast.error(t('family.fillAllFields'));
       return;
     }
 
@@ -206,8 +206,8 @@ export default function FamilyAuth() {
 
               <TabsContent value="create" className="space-y-4 mt-6">
                 <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold text-primary">Buat Akun Keluarga Baru</h3>
-                  <p className="text-sm text-muted-foreground">Daftar sebagai orang tua utama untuk keluarga Anda</p>
+                  <h3 className="text-lg font-semibold text-primary">{t('family.createFamily')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('family.createFamilyDesc')}</p>
                 </div>
                 
                 <form onSubmit={handleCreateFamily} className="space-y-4">

@@ -340,7 +340,7 @@ export default function Chat() {
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start space-x-3">
               <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm text-yellow-800 font-medium">Peringatan Keamanan</p>
+                <p className="text-sm text-yellow-800 font-medium">{t('chat.safetyWarningTitle')}</p>
                 <p className="text-sm text-yellow-700 mt-1">{safetyWarningMessage}</p>
                 <div className="flex space-x-2 mt-2">
                   <Button
@@ -352,14 +352,14 @@ export default function Chat() {
                     }}
                     className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
                   >
-                    Hapus Pesan
+                    {t('chat.deleteMessage')}
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => setShowSafetyWarning(false)}
                     className="bg-yellow-600 hover:bg-yellow-700 text-white"
                   >
-                    Lanjutkan
+                    {t('chat.continue')}
                   </Button>
                 </div>
               </div>
@@ -392,7 +392,7 @@ export default function Chat() {
                   }
                 }}
                 onKeyPress={handleKeyPress}
-                placeholder="Ketik pesan atau tekan tombol mikrofon untuk bicara..."
+                placeholder={t('chat.voicePlaceholder')}
                 className="kid-friendly-input-large text-lg"
                 disabled={isRecording}
               />
@@ -411,10 +411,10 @@ export default function Chat() {
           <div className="mt-3 text-center">
             <div className="flex items-center justify-center space-x-2 text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>
               <Shield className="h-4 w-4 text-blue-500" />
-              <p>💡 Tips: Tanya apa saja tentang pelajaran, hobi, atau hal menarik lainnya!</p>
+              <p>{t('chat.tip')}</p>
             </div>
             <p className="text-xs mt-1" style={{ color: 'hsl(var(--text-muted))' }}>
-              Kaka selalu menjaga keamanan percakapan untuk melindungi anak-anak
+              {t('chat.safetyNote')}
             </p>
           </div>
         </div>

@@ -11,7 +11,6 @@ export function LanguageToggle() {
   };
 
   const currentLang = i18n.language === 'id' ? 'ID' : 'EN';
-  const currentCountry = i18n.language === 'id' ? 'ID' : 'US';
 
   return (
     <Button
@@ -22,7 +21,7 @@ export function LanguageToggle() {
     >
       <Globe className="h-4 w-4 text-muted-foreground" />
       <span className="text-sm font-medium">
-        {currentCountry} {currentLang}
+        {currentLang}
       </span>
     </Button>
   );
