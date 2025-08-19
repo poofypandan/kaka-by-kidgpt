@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChildModeProvider } from "@/components/ChildModeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { DemoProvider } from "@/hooks/useDemoMode";
+import '@/i18n';
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Parent from "./pages/Parent";
@@ -31,11 +33,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <DemoProvider>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ChildModeProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ChildModeProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -102,10 +105,11 @@ const App = () => (
                   </AuthGuard>
                 } />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ChildModeProvider>
-          </BrowserRouter>
-        </TooltipProvider>
+                </Routes>
+              </ChildModeProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </LanguageProvider>
       </AuthProvider>
     </DemoProvider>
   </QueryClientProvider>

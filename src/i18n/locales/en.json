@@ -6,7 +6,9 @@
     "settings": "Settings",
     "profile": "Profile",
     "dashboard": "Dashboard",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "back": "Back",
+    "exit": "Exit"
   },
   "auth": {
     "login": "Sign In",
@@ -19,8 +21,38 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "signInWithGoogle": "Sign in with Google",
-    "welcome": "Welcome to Kaka",
-    "welcomeMessage": "Safe learning platform for Indonesian families"
+    "welcome": "Hi! What would you like to ask?",
+    "welcomeMessage": "Kaka is ready to help! 🐨",
+    "loginWithGoogle": "Login with Google",
+    "or": "Or",
+    "register": "Sign Up",
+    "emailPlaceholder": "parent@email.com",
+    "passwordPlaceholder": "Minimum 6 characters",
+    "backToDemo": "Back to Demo",
+    "processing": "Processing...",
+    "createAccount": "Create Account",
+    "pleaseWait": "Please wait...",
+    "errors": {
+      "fillEmailPassword": "Please fill in email and password",
+      "wrongCredentials": "Wrong email or password",
+      "userExists": "Email already registered, please login",
+      "emailNotConfirmed": "Please check email for account confirmation",
+      "systemError": "System error occurred",
+      "googleAuthFailed": "Failed to login with Google",
+      "configurationNeeded": "Configuration Required",
+      "googleNotConfigured": "Google OAuth not configured in system",
+      "loginCancelled": "Login Cancelled",
+      "popupBlocked": "Popup Blocked",
+      "allowPopup": "Please allow popup for Google login or try again",
+      "connectionIssue": "Connection Issue",
+      "checkConnection": "Check internet connection and try again",
+      "unexpectedError": "An unexpected error occurred. Please try again."
+    },
+    "success": {
+      "accountCreated": "Account created successfully. Please check email for confirmation.",
+      "redirecting": "Redirecting...",
+      "openingGoogle": "Opening Google window for login"
+    }
   },
   "family": {
     "title": "My Family",
@@ -105,7 +137,14 @@
     "hours": "hours",
     "days": "days",
     "weeks": "weeks",
-    "months": "months"
+    "months": "months",
+    "welcome": "Welcome",
+    "home": "Home",
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "contact": "Contact",
+    "language": "Language"
   },
   "mobile": {
     "touchTarget": "Touch to continue",

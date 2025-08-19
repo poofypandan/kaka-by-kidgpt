@@ -8,13 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useDemoMode } from '@/hooks/useDemoMode';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { FloatingKoala, WavingKoala, SleepingKoala, TwinkleStar, FloatingHeart, FloatingCloud } from '@/components/KoalaCharacters';
+import { LanguageToggle } from '@/components/LanguageToggle';
 
 export default function Auth() {
   const { user, loading, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
   const { isDemoMode, exitDemo } = useDemoMode();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +41,7 @@ export default function Auth() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Harap isi email dan password",
+        description: t('auth.errors.fillEmailPassword'),
       });
       return;
     }
@@ -51,14 +54,14 @@ export default function Auth() {
         : await signInWithEmail(email, password);
 
       if (error) {
-        let errorMessage = "Terjadi kesalahan";
+        let errorMessage = t('auth.errors.systemError');
         
         if (error.message?.includes('Invalid login credentials')) {
-          errorMessage = "Email atau password salah";
+          errorMessage = t('auth.errors.wrongCredentials');
         } else if (error.message?.includes('User already registered')) {
-          errorMessage = "Email sudah terdaftar, silakan login";
+          errorMessage = t('auth.errors.userExists');
         } else if (error.message?.includes('Email not confirmed')) {
-          errorMessage = "Silakan cek email untuk konfirmasi akun";
+          errorMessage = t('auth.errors.emailNotConfirmed');
         }
         
         toast({
@@ -68,15 +71,15 @@ export default function Auth() {
         });
       } else if (isSignUp) {
         toast({
-          title: "Berhasil!",
-          description: "Akun berhasil dibuat. Silakan cek email untuk konfirmasi.",
+          title: t('common.success'),
+          description: t('auth.success.accountCreated'),
         });
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Terjadi kesalahan sistem",
+        description: t('auth.errors.systemError'),
       });
     } finally {
       setIsSubmitting(false);
@@ -94,21 +97,21 @@ export default function Auth() {
         console.error('❌ Google auth failed:', error);
         
         let title = "Google Login Error";
-        let description = "Gagal login dengan Google";
+        let description = t('auth.errors.googleAuthFailed');
         
         // Handle specific error types with helpful messages
         if (error.isConfigurationError) {
-          title = "Konfigurasi Diperlukan";
-          description = error.message || "Google OAuth belum dikonfigurasi di sistem";
+          title = t('auth.errors.configurationNeeded');
+          description = error.message || t('auth.errors.googleNotConfigured');
         } else if (error.isUserCancelled) {
-          title = "Login Dibatalkan";
-          description = error.message || "Login dibatalkan oleh pengguna";
+          title = t('auth.errors.loginCancelled');
+          description = error.message || t('auth.errors.loginCancelled');
         } else if (error.message?.includes('popup')) {
-          title = "Popup Diblokir";
-          description = "Silakan izinkan popup untuk login Google atau coba lagi";
+          title = t('auth.errors.popupBlocked');
+          description = t('auth.errors.allowPopup');
         } else if (error.message?.includes('network')) {
-          title = "Masalah Koneksi";
-          description = "Periksa koneksi internet dan coba lagi";
+          title = t('auth.errors.connectionIssue');
+          description = t('auth.errors.checkConnection');
         }
         
         toast({
@@ -128,16 +131,16 @@ export default function Auth() {
       } else {
         console.log('✅ Google auth initiated successfully');
         toast({
-          title: "Mengalihkan...",
-          description: "Membuka jendela Google untuk login",
+          title: t('auth.success.redirecting'),
+          description: t('auth.success.openingGoogle'),
         });
       }
     } catch (error) {
       console.error('💥 Unexpected error in handleGoogleAuth:', error);
       toast({
         variant: "destructive",
-        title: "Error Sistem",
-        description: "Terjadi kesalahan tak terduga. Silakan coba lagi.",
+        title: "Error",
+        description: t('auth.errors.unexpectedError'),
       });
     } finally {
       setIsSubmitting(false);
@@ -157,7 +160,7 @@ export default function Auth() {
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Kembali ke Demo
+          {t('auth.backToDemo')}
         </Button>
       )}
 
@@ -181,6 +184,9 @@ export default function Auth() {
       <Card className="w-full max-w-md relative z-20 backdrop-blur-sm bg-card/95 border-0 rounded-2xl" 
             style={{ boxShadow: 'var(--shadow-soft)' }}>
         <CardHeader className="text-center space-y-4 pb-6">
+          <div className="flex justify-end mb-2">
+            <LanguageToggle />
+          </div>
           <div className="mx-auto w-32 h-16 flex items-center justify-center">
             <img 
               src="/lovable-uploads/3c6d677b-f566-47d7-8a38-d8f86401741b.png" 
@@ -189,10 +195,10 @@ export default function Auth() {
             />
           </div>
           <CardTitle className="text-2xl font-bold text-primary">
-            Hai! Ada yang mau kamu tanya?
+            {t('auth.welcome')}
           </CardTitle>
           <CardDescription className="text-muted-foreground text-base">
-            Kaka siap membantu! 🐨
+            {t('auth.welcomeMessage')}
           </CardDescription>
         </CardHeader>
         
@@ -208,7 +214,7 @@ export default function Auth() {
             ) : (
               <div className="mr-2 w-4 h-4 bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 rounded-full" />
             )}
-            Login dengan Google
+            {t('auth.loginWithGoogle')}
           </Button>
           
           <div className="relative">
@@ -216,30 +222,30 @@ export default function Auth() {
               <span className="w-full border-t border-border/50" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-3 text-muted-foreground font-medium">Atau</span>
+              <span className="bg-card px-3 text-muted-foreground font-medium">{t('auth.or')}</span>
             </div>
           </div>
 
           <Tabs defaultValue="login" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2 bg-secondary/50 rounded-xl p-1">
-              <TabsTrigger value="login" className="rounded-lg">Login</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-lg">Daftar</TabsTrigger>
+              <TabsTrigger value="login" className="rounded-lg">{t('auth.login')}</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg">{t('auth.signup')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login" className="space-y-4">
               <div className="space-y-3">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium">{t('auth.email')}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="orangtua@email.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="kid-friendly-input"
                 />
               </div>
               <div className="space-y-3">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">{t('auth.password')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -256,28 +262,28 @@ export default function Auth() {
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Login
+                {t('auth.login')}
               </Button>
             </TabsContent>
             
             <TabsContent value="signup" className="space-y-4">
               <div className="space-y-3">
-                <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
+                <Label htmlFor="signup-email" className="text-sm font-medium">{t('auth.email')}</Label>
                 <Input
                   id="signup-email"
                   type="email"
-                  placeholder="orangtua@email.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="kid-friendly-input"
                 />
               </div>
               <div className="space-y-3">
-                <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
+                <Label htmlFor="signup-password" className="text-sm font-medium">{t('auth.password')}</Label>
                 <Input
                   id="signup-password"
                   type="password"
-                  placeholder="Minimal 6 karakter"
+                  placeholder={t('auth.passwordPlaceholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="kid-friendly-input"
@@ -291,7 +297,7 @@ export default function Auth() {
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Daftar Akun
+                {t('auth.register')}
               </Button>
             </TabsContent>
           </Tabs>

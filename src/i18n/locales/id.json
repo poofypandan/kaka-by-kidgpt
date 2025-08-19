@@ -6,7 +6,9 @@
     "settings": "Pengaturan",
     "profile": "Profil",
     "dashboard": "Dashboard",
-    "subscription": "Berlangganan"
+    "subscription": "Berlangganan",
+    "back": "Kembali",
+    "exit": "Keluar"
   },
   "auth": {
     "login": "Masuk",
@@ -19,8 +21,38 @@
     "noAccount": "Belum punya akun?",
     "hasAccount": "Sudah punya akun?",
     "signInWithGoogle": "Masuk dengan Google",
-    "welcome": "Selamat Datang di Kaka",
-    "welcomeMessage": "Platform belajar yang aman untuk keluarga Indonesia"
+    "welcome": "Hai! Ada yang mau kamu tanya?",
+    "welcomeMessage": "Kaka siap membantu! 🐨",
+    "loginWithGoogle": "Login dengan Google",
+    "or": "Atau",
+    "register": "Daftar Akun",
+    "emailPlaceholder": "orangtua@email.com",
+    "passwordPlaceholder": "Minimal 6 karakter",
+    "backToDemo": "Kembali ke Demo",
+    "processing": "Memproses...",
+    "createAccount": "Daftar Akun",
+    "pleaseWait": "Mohon tunggu...",
+    "errors": {
+      "fillEmailPassword": "Harap isi email dan password",
+      "wrongCredentials": "Email atau password salah",
+      "userExists": "Email sudah terdaftar, silakan login",
+      "emailNotConfirmed": "Silakan cek email untuk konfirmasi akun",
+      "systemError": "Terjadi kesalahan sistem",
+      "googleAuthFailed": "Gagal login dengan Google",
+      "configurationNeeded": "Konfigurasi Diperlukan",
+      "googleNotConfigured": "Google OAuth belum dikonfigurasi di sistem",
+      "loginCancelled": "Login Dibatalkan",
+      "popupBlocked": "Popup Diblokir",
+      "allowPopup": "Silakan izinkan popup untuk login Google atau coba lagi",
+      "connectionIssue": "Masalah Koneksi",
+      "checkConnection": "Periksa koneksi internet dan coba lagi",
+      "unexpectedError": "Terjadi kesalahan tak terduga. Silakan coba lagi."
+    },
+    "success": {
+      "accountCreated": "Akun berhasil dibuat. Silakan cek email untuk konfirmasi.",
+      "redirecting": "Mengalihkan...",
+      "openingGoogle": "Membuka jendela Google untuk login"
+    }
   },
   "family": {
     "title": "Keluarga Saya",
@@ -105,7 +137,14 @@
     "hours": "jam",
     "days": "hari",
     "weeks": "minggu",
-    "months": "bulan"
+    "months": "bulan",
+    "welcome": "Selamat Datang",
+    "home": "Beranda",
+    "features": "Fitur",
+    "pricing": "Harga",
+    "about": "Tentang",
+    "contact": "Kontak",
+    "language": "Bahasa"
   },
   "mobile": {
     "touchTarget": "Sentuh untuk melanjutkan",

@@ -141,11 +141,11 @@ export default function Index() {
                 <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
                   <BookOpen className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Pembelajaran Interaktif</CardTitle>
+                <CardTitle className="text-lg">{t('common.features')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-center">
-                  Chat dengan Kaka untuk belajar berbagai mata pelajaran dengan cara yang menyenangkan
+                  {t('auth.welcomeMessage')}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -157,11 +157,11 @@ export default function Index() {
                 <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Aman & Terpantau</CardTitle>
+                <CardTitle className="text-lg">{t('settings.safety')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-center">
-                  Orang tua dapat memantau aktivitas belajar dan mengatur batas waktu penggunaan
+                  {t('dashboard.safetyAlerts')}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -173,11 +173,11 @@ export default function Index() {
                 <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
                   <Users className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Kurikulum Merdeka</CardTitle>
+                <CardTitle className="text-lg">{t('family.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-center">
-                  Materi pembelajaran sesuai dengan Kurikulum Merdeka dan nilai-nilai Pancasila
+                  {t('cultural.pancasilaValues')}
                 </CardDescription>
               </CardContent>
             </Card>
