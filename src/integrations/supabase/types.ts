@@ -91,15 +91,18 @@ export type Database = {
         Row: {
           birthdate: string | null
           created_at: string
+          created_by_parent_id: string | null
           daily_limit_min: number
           daily_minutes_limit: number
           detected_grade: number | null
+          family_id: string | null
           final_grade: number | null
           first_name: string
           grade: number
           grade_override: number | null
           id: string
           last_usage_reset_date: string
+          learning_preferences: Json | null
           minutes_used_today: number
           parent_id: string
           streak_days: number
@@ -110,15 +113,18 @@ export type Database = {
         Insert: {
           birthdate?: string | null
           created_at?: string
+          created_by_parent_id?: string | null
           daily_limit_min?: number
           daily_minutes_limit?: number
           detected_grade?: number | null
+          family_id?: string | null
           final_grade?: number | null
           first_name: string
           grade: number
           grade_override?: number | null
           id?: string
           last_usage_reset_date?: string
+          learning_preferences?: Json | null
           minutes_used_today?: number
           parent_id: string
           streak_days?: number
@@ -129,15 +135,18 @@ export type Database = {
         Update: {
           birthdate?: string | null
           created_at?: string
+          created_by_parent_id?: string | null
           daily_limit_min?: number
           daily_minutes_limit?: number
           detected_grade?: number | null
+          family_id?: string | null
           final_grade?: number | null
           first_name?: string
           grade?: number
           grade_override?: number | null
           id?: string
           last_usage_reset_date?: string
+          learning_preferences?: Json | null
           minutes_used_today?: number
           parent_id?: string
           streak_days?: number
@@ -146,6 +155,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "children_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "children_parent_id_fkey"
             columns: ["parent_id"]
@@ -207,31 +223,40 @@ export type Database = {
         Row: {
           child_id: string | null
           created_at: string
+          cultural_context_flags: Json | null
           filter_reason: string | null
           filtered_content: boolean | null
           id: string
+          language: string | null
           message_content: string
           message_type: string
+          multilingual_safety_score: number | null
           safety_score: number | null
         }
         Insert: {
           child_id?: string | null
           created_at?: string
+          cultural_context_flags?: Json | null
           filter_reason?: string | null
           filtered_content?: boolean | null
           id?: string
+          language?: string | null
           message_content: string
           message_type: string
+          multilingual_safety_score?: number | null
           safety_score?: number | null
         }
         Update: {
           child_id?: string | null
           created_at?: string
+          cultural_context_flags?: Json | null
           filter_reason?: string | null
           filtered_content?: boolean | null
           id?: string
+          language?: string | null
           message_content?: string
           message_type?: string
+          multilingual_safety_score?: number | null
           safety_score?: number | null
         }
         Relationships: [
@@ -276,32 +301,85 @@ export type Database = {
           },
         ]
       }
+      cultural_preferences: {
+        Row: {
+          content_guidelines: Json | null
+          created_at: string
+          educational_focus: Json | null
+          family_id: string
+          id: string
+          language_preference: string | null
+          updated_at: string
+          values_framework: Json | null
+        }
+        Insert: {
+          content_guidelines?: Json | null
+          created_at?: string
+          educational_focus?: Json | null
+          family_id: string
+          id?: string
+          language_preference?: string | null
+          updated_at?: string
+          values_framework?: Json | null
+        }
+        Update: {
+          content_guidelines?: Json | null
+          created_at?: string
+          educational_focus?: Json | null
+          family_id?: string
+          id?: string
+          language_preference?: string | null
+          updated_at?: string
+          values_framework?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cultural_preferences_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       families: {
         Row: {
+          billing_status: string | null
           created_at: string
+          cultural_preferences: Json | null
           id: string
           invite_code: string | null
           invite_expires_at: string | null
           name: string
           primary_parent_id: string | null
+          subscription_end_date: string | null
+          subscription_tier: string | null
           updated_at: string
         }
         Insert: {
+          billing_status?: string | null
           created_at?: string
+          cultural_preferences?: Json | null
           id?: string
           invite_code?: string | null
           invite_expires_at?: string | null
           name: string
           primary_parent_id?: string | null
+          subscription_end_date?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Update: {
+          billing_status?: string | null
           created_at?: string
+          cultural_preferences?: Json | null
           id?: string
           invite_code?: string | null
           invite_expires_at?: string | null
           name?: string
           primary_parent_id?: string | null
+          subscription_end_date?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -380,8 +458,10 @@ export type Database = {
           id: string
           islamic_content_enabled: boolean | null
           name: string
+          permissions: Json | null
           phone: string | null
           role: string
+          status: string | null
           updated_at: string
           user_id: string
         }
@@ -394,8 +474,10 @@ export type Database = {
           id?: string
           islamic_content_enabled?: boolean | null
           name: string
+          permissions?: Json | null
           phone?: string | null
           role: string
+          status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -408,8 +490,10 @@ export type Database = {
           id?: string
           islamic_content_enabled?: boolean | null
           name?: string
+          permissions?: Json | null
           phone?: string | null
           role?: string
+          status?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -725,6 +809,56 @@ export type Database = {
           },
         ]
       }
+      payment_history: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          family_id: string
+          id: string
+          metadata: Json | null
+          payment_method: string
+          payment_provider: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          family_id: string
+          id?: string
+          metadata?: Json | null
+          payment_method: string
+          payment_provider?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          family_id?: string
+          id?: string
+          metadata?: Json | null
+          payment_method?: string
+          payment_provider?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_history_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           child_grade: number | null
@@ -832,6 +966,53 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          family_id: string
+          id: string
+          last_payment_date: string | null
+          payment_method: string | null
+          status: string
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          family_id: string
+          id?: string
+          last_payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          family_id?: string
+          id?: string
+          last_payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {

@@ -283,6 +283,27 @@
     "valueName": "Nama Nilai",
     "valueDescription": "Deskripsi Nilai"
   },
+  "payment": {
+    "digitalWallets": "Dompet Digital",
+    "bankTransfer": "Transfer Bank", 
+    "convenienceStores": "Minimarket",
+    "installments": "Cicilan",
+    "payNow": "Bayar Sekarang",
+    "securePayment": "Pembayaran Aman & Terpercaya",
+    "cancellationPolicy": "Dapat dibatalkan kapan saja"
+  },
+  "dashboard": {
+    "safetyAlerts": "Peringatan Keamanan",
+    "safetyScore": "Skor Keamanan", 
+    "sessionTime": "Waktu Sesi",
+    "todayMessages": "Pesan Hari Ini",
+    "alertsToday": "Peringatan Hari Ini",
+    "viewDetails": "Lihat Detail",
+    "noActiveChildren": "Tidak ada anak yang sedang aktif",
+    "justNow": "Baru saja",
+    "minutesAgo": "{{minutes}} menit lalu",
+    "hoursAgo": "{{hours}} jam lalu"
+  },
   "child": {
     "hello": "Halo",
     "whatToLearnToday": "Mau belajar apa hari ini?",
