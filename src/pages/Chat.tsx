@@ -68,87 +68,74 @@ export default function Chat() {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    // Pre-message safety check
-    const safetyCheck = quickSafetyCheck(inputMessage);
-    if (shouldWarnUser(inputMessage)) {
-      setShowSafetyWarning(true);
-      setSafetyWarningMessage(getSafetyWarningMessage(safetyCheck.severity));
-      return;
-    }
-
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputMessage,
       sender: 'user',
-      timestamp: new Date(),
-      safetyScore: safetyCheck.score
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
     const currentMessage = inputMessage;
     setInputMessage('');
     setIsKakaSpeaking(true);
-    setShowSafetyWarning(false);
 
     try {
-      console.log('🔄 Sending message to Kaka:', currentMessage);
+      console.log('🔄 Sending to Kaka:', currentMessage);
 
       const { data, error } = await supabase.functions.invoke('kaka-chat', {
         body: { 
           message: currentMessage,
-          childId: user?.id || 'anonymous',
-          childGrade: 3, // You can get this from user profile later
-          childName: user?.email || 'Anonymous'
+          childId: user?.id || 'test-user'
         }
       });
 
+      console.log('📨 Supabase response:', { data, error });
+
       if (error) {
-        console.error('❌ Supabase function error:', error);
-        throw new Error(error.message || 'Function call failed');
+        console.error('❌ Supabase error:', error);
+        throw new Error(`Supabase: ${error.message}`);
       }
 
-      console.log('✅ Kaka response received:', data);
+      if (!data || !data.response) {
+        console.error('❌ No response data:', data);
+        throw new Error('No response from Kaka');
+      }
 
       const kakaMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response || "Maaf, Kaka sedang istirahat sebentar. Coba lagi nanti ya! 😊",
+        content: data.response,
         sender: 'kaka',
         timestamp: new Date(),
         safetyScore: data.safetyScore,
         filtered: data.filtered
       };
-      
+
       setMessages(prev => [...prev, kakaMessage]);
 
-      // Enhanced success handling with safety notifications
       if (data.filtered) {
         toast({
           title: "🛡️ Pesan Aman",
-          description: "Kaka memastikan percakapan tetap aman untuk kamu!",
-          variant: "default",
+          description: "Kaka memastikan percakapan tetap aman!",
         });
       }
 
-      // Show safety score for transparency (only in development)
-      if (import.meta.env.DEV && data.safetyScore) {
-        console.log('Safety Score:', data.safetyScore);
-      }
+      console.log('✅ Message handled successfully');
 
     } catch (error: any) {
-      console.error('❌ Chat error:', error);
-      
-      // User-friendly error handling with Kaka personality
+      console.error('💥 Chat error:', error);
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Maaf, Kaka sedang bermasalah. Coba lagi sebentar ya! 🔧",
+        content: `Maaf, ada masalah teknis: ${error.message}. Tim akan segera memperbaiki! 🔧`,
         sender: 'kaka',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
 
       toast({
-        title: "Koneksi Bermasalah",
-        description: "Kaka sedang istirahat. Coba lagi dalam beberapa menit ya!",
+        title: "❌ Error Teknis",
+        description: error.message || "Koneksi bermasalah. Coba lagi ya!",
         variant: "destructive",
       });
     } finally {
