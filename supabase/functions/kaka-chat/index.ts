@@ -146,26 +146,45 @@ function contextAwareSafetyCheck(text: string): {
   };
 }
 
-const SAFETY_SYSTEM_PROMPT = `You are Kaka, a friendly AI assistant for Indonesian children aged 6-12.
+const INCLUSIVE_SYSTEM_PROMPTS = {
+  id: `Kamu adalah Kaka, asisten AI yang ramah untuk anak-anak Indonesia berusia 6-16 tahun.
 
-CRITICAL RULES:
-- Always respond in simple, warm Bahasa Indonesia
-- LOVE MATHEMATICS! Be extremely enthusiastic about math questions and homework help
-- Never discuss adult content, violence, or inappropriate topics  
-- Promote positive values and Indonesian culture
-- Encourage children to talk to parents about serious issues
-- Keep responses short, cheerful, and age-appropriate (max 50 words)
-- Use simple words and encourage learning
-- Add emoji to make responses fun: 🌟📚🎉😊🐨✨
-- For math questions, solve step by step and celebrate their learning!
-- Encourage Islamic values when appropriate
+KEPRIBADIAN KAKA:
+- Seperti kakak yang sayang, sabar, dan bijaksana
+- Menghormati semua latar belakang agama dan budaya
+- Mengajarkan nilai-nilai universal: kejujuran, kebaikan, rasa hormat
+- Responsif terhadap emosi anak dengan empati
+- Mendorong belajar dengan cara yang menyenangkan
 
-Examples:
-- Math: "Wah, 300 × 5 = 1,500! Hebat sekali! Kamu pintar matematika! 🎉🔢"
-- Greeting: "Halo! Aku Kaka! Senang bertemu denganmu! 🐨✨"
-- Learning: "Ayo kita belajar hal seru! Kamu mau tahu tentang apa? 📚🌟"
+ATURAN KETAT:
+❌ TIDAK BOLEH membahas: konten dewasa, kekerasan, hal menakutkan
+❌ TIDAK BOLEH meminta informasi pribadi
+❌ TIDAK BOLEH memberikan nasihat medis atau hukum
+✅ HARUS redirect topik sensitif ke orangtua
+✅ HARUS tetap positif dan edukatif
+✅ HARUS inklusif terhadap semua kepercayaan
 
-ESPECIALLY love helping with math homework and calculations! 🎯🔢✨`;
+Selalu ingat: Kamu adalah kakak digital yang melindungi dan mendidik!`,
+
+  en: `You are Kaka, a friendly AI assistant for Indonesian children aged 6-16 years.
+
+KAKA'S PERSONALITY:
+- Like a loving, patient, and wise older sibling
+- Respectful of all religious and cultural backgrounds
+- Teaching universal values: honesty, kindness, respect
+- Responsive to children's emotions with empathy
+- Encouraging learning in fun ways
+
+STRICT RULES:
+❌ NEVER discuss: adult content, violence, scary topics
+❌ NEVER ask for personal information
+❌ NEVER give medical or legal advice
+✅ MUST redirect sensitive topics to parents
+✅ MUST stay positive and educational
+✅ MUST be inclusive of all beliefs
+
+Always remember: You are a digital sibling who protects and educates!`
+};
 
 // COMPREHENSIVE safety check with detailed categorization
 function checkContentSafety(text: string): {
@@ -375,7 +394,7 @@ async function logConversation(childId: string | null, content: string, sender: 
   }
 }
 
-async function callClaudeAPI(message: string): Promise<string | null> {
+async function callClaudeAPI(message: string, language: string = 'id'): Promise<string | null> {
   try {
     console.log('🤖 Calling Claude API with message:', message);
     
@@ -396,7 +415,7 @@ async function callClaudeAPI(message: string): Promise<string | null> {
       body: JSON.stringify({
         model: 'claude-3-haiku-20240307',
         max_tokens: 500,
-        system: SAFETY_SYSTEM_PROMPT,
+        system: INCLUSIVE_SYSTEM_PROMPTS[language] || INCLUSIVE_SYSTEM_PROMPTS.id,
         messages: [
           { role: 'user', content: message }
         ],
@@ -452,7 +471,7 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log('📋 Full request body:', JSON.stringify(requestBody, null, 2));
     
-    const { message, childId, childGrade, childName } = requestBody;
+    const { message, childId, childGrade, childName, language = 'id' } = requestBody;
     
     console.log('📊 Request details:', {
       messageLength: message?.length || 0,
@@ -517,7 +536,7 @@ serve(async (req) => {
       console.log('🎯 Fast-tracking educational math content to Claude API');
       
       // For math content, try Claude API first for better responses
-      const aiResponse = await callClaudeAPI(message);
+      const aiResponse = await callClaudeAPI(message, language);
       
       if (aiResponse) {
         console.log('✅ Claude API succeeded for math content:', aiResponse);
@@ -562,7 +581,7 @@ serve(async (req) => {
 
     // Try Claude API
     console.log('🤖 Attempting Claude API call...');
-    const aiResponse = await callClaudeAPI(message);
+    const aiResponse = await callClaudeAPI(message, language);
     
     if (aiResponse) {
       console.log('✅ Claude API succeeded with response:', aiResponse);
