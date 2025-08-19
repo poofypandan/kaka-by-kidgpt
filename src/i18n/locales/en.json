@@ -92,7 +92,7 @@
     "loggingIn": "Signing In...",
     "loginButton": "Sign In to Account",
     "securityTitle": "Security & Privacy",
-    "securityDesc": "Kaka by KidGPT uses safe AI technology with full parental monitoring, Islamic content filters, and strict data protection according to international standards."
+    "securityDesc": "Kaka by KidGPT uses safe AI technology with full parental monitoring, customizable content filters, and strict data protection according to international standards."
   },
   "subscription": {
     "title": "Choose Your Plan",
@@ -144,7 +144,7 @@
     "safety": "Safety",
     "timeLimit": "Time Limit",
     "contentFilter": "Content Filter",
-    "islamicContent": "Islamic Content",
+    "familyValues": "Family Values",
     "parentSettings": "Parent Settings",
     "backToDashboard": "Back to Dashboard",
     "security": "Security",
@@ -256,6 +256,30 @@
     "respectElders": "Respect for elders",
     "communitySpirit": "Community spirit",
     "religiousTolerance": "Religious tolerance"
+  },
+  "values": {
+    "universal": "Universal Values",
+    "honesty": "Honesty",
+    "kindness": "Kindness",
+    "respect": "Respect",
+    "responsibility": "Responsibility",
+    "empathy": "Empathy",
+    "tolerance": "Tolerance",
+    "familyCustomValues": "Family Custom Values",
+    "customizeFamilyValues": "Customize family values according to your beliefs and traditions",
+    "familyValuesSettings": "Family Values Settings",
+    "enableCustomValues": "Enable custom family values",
+    "selectReligiousContext": "Select religious/cultural context",
+    "islam": "Islam",
+    "christianity": "Christianity", 
+    "hinduism": "Hinduism",
+    "buddhism": "Buddhism",
+    "confucianism": "Confucianism",
+    "secular": "Secular/Universal",
+    "customValues": "Custom Values",
+    "addCustomValue": "Add Custom Value",
+    "valueName": "Value Name",
+    "valueDescription": "Value Description"
   },
   "child": {
     "hello": "Hello",

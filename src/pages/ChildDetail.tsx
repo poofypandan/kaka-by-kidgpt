@@ -283,8 +283,8 @@ export default function ChildDetail() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Konten Islami</p>
-                  <p className="text-lg font-bold">{child.islamic_content_enabled ? 'Aktif' : 'Nonaktif'}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Nilai Keluarga</p>
+                  <p className="text-lg font-bold">{child.islamic_content_enabled ? 'Kustom' : 'Universal'}</p>
                 </div>
                 <Heart className="h-8 w-8 text-primary" />
               </div>

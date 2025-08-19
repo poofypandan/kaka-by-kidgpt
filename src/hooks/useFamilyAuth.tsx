@@ -11,7 +11,8 @@ interface FamilyMember {
   phone?: string;
   daily_time_limit: number;
   content_filter_level: string;
-  islamic_content_enabled: boolean;
+  islamic_content_enabled: boolean; // Keep this for now to match database
+  family_values_enabled?: boolean; // Add as optional for future updates
 }
 
 interface Family {

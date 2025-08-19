@@ -420,7 +420,7 @@ export default function FamilyAuth() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Kaka by KidGPT menggunakan teknologi AI yang aman dengan monitoring orang tua penuh, 
-                filter konten Islami, dan perlindungan data yang ketat sesuai standar internasional.
+                filter konten yang dapat disesuaikan, dan perlindungan data yang ketat sesuai standar internasional.
               </p>
             </div>
           </CardContent>

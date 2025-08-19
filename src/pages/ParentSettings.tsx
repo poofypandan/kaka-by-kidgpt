@@ -10,9 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Shield, Bell, Clock, Phone, Users, Smartphone, Eye, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Shield, Bell, Clock, Phone, Users, Smartphone, Eye, AlertTriangle, Heart } from 'lucide-react';
 import SafetyDashboard from '@/components/SafetyDashboard';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import FamilyValuesSettings from '@/components/FamilyValuesSettings';
 
 export default function ParentSettings() {
   const { user, signOut } = useAuth();
@@ -72,8 +73,9 @@ export default function ParentSettings() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="safety" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 shadow-lg">
+          <TabsList className="grid w-full grid-cols-5 bg-white/80 shadow-lg">
             <TabsTrigger value="safety">{t('settings.security')}</TabsTrigger>
+            <TabsTrigger value="values">{t('values.familyValues')}</TabsTrigger>
             <TabsTrigger value="monitoring">{t('settings.monitoring')}</TabsTrigger>
             <TabsTrigger value="schedule">{t('settings.schedule')}</TabsTrigger>
             <TabsTrigger value="account">{t('settings.account')}</TabsTrigger>
@@ -184,6 +186,10 @@ export default function ParentSettings() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="values" className="space-y-6">
+            <FamilyValuesSettings familyId="demo-family-id" />
           </TabsContent>
 
           <TabsContent value="monitoring" className="space-y-6">

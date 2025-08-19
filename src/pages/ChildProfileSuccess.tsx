@@ -26,7 +26,7 @@ export default function ChildProfileSuccess() {
       return [
         { topic: "Hewan Lucu", preview: "Kaka mau cerita tentang kelinci yang suka melompat..." },
         { topic: "Warna Pelangi", preview: "Wah, kamu suka warna apa? Kaka suka biru kayak langit..." },
-        { topic: "Dongeng Islami", preview: "Ada cerita tentang Nabi yang baik hati nih..." }
+        { topic: "Cerita Moral", preview: "Ada cerita tentang orang baik yang selalu tolong menolong..." }
       ];
     } else if (age <= 10) {
       return [
@@ -53,8 +53,8 @@ export default function ChildProfileSuccess() {
     },
     {
       icon: Heart,
-      title: "Konten sesuai nilai Islam",
-      description: "Setiap cerita mengajarkan akhlak yang baik"
+      title: "Konten sesuai nilai keluarga",
+      description: "Setiap cerita mengajarkan nilai-nilai positif yang universal"
     },
     {
       icon: Clock,

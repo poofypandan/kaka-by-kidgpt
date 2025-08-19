@@ -92,7 +92,7 @@
     "loggingIn": "Masuk...",
     "loginButton": "Masuk ke Akun",
     "securityTitle": "Keamanan & Privasi",
-    "securityDesc": "Kaka by KidGPT menggunakan teknologi AI yang aman dengan monitoring orang tua penuh, filter konten Islami, dan perlindungan data yang ketat sesuai standar internasional."
+    "securityDesc": "Kaka by KidGPT menggunakan teknologi AI yang aman dengan monitoring orang tua penuh, filter konten yang dapat disesuaikan, dan perlindungan data yang ketat sesuai standar internasional."
   },
   "subscription": {
     "title": "Pilih Paket Berlangganan",
@@ -138,7 +138,7 @@
     "safety": "Keamanan",
     "timeLimit": "Batas Waktu",
     "contentFilter": "Filter Konten",
-    "islamicContent": "Konten Islami",
+    "familyValues": "Nilai Keluarga",
     "parentSettings": "Pengaturan Orang Tua",
     "backToDashboard": "Kembali ke Dashboard",
     "security": "Keamanan",
@@ -250,6 +250,30 @@
     "respectElders": "Hormat kepada yang lebih tua",
     "communitySpirit": "Semangat gotong royong",
     "religiousTolerance": "Toleransi beragama"
+  },
+  "values": {
+    "universal": "Nilai Universal",
+    "honesty": "Kejujuran",
+    "kindness": "Kebaikan",
+    "respect": "Rasa Hormat",
+    "responsibility": "Tanggung Jawab",
+    "empathy": "Empati",
+    "tolerance": "Toleransi",
+    "familyCustomValues": "Nilai Kustom Keluarga",
+    "customizeFamilyValues": "Sesuaikan nilai keluarga menurut kepercayaan dan tradisi Anda",
+    "familyValuesSettings": "Pengaturan Nilai Keluarga",
+    "enableCustomValues": "Aktifkan nilai kustom keluarga",
+    "selectReligiousContext": "Pilih konteks agama/budaya",
+    "islam": "Islam",
+    "christianity": "Kristen",
+    "hinduism": "Hindu",
+    "buddhism": "Buddha",
+    "confucianism": "Konghucu",
+    "secular": "Sekuler/Universal",
+    "customValues": "Nilai Kustom",
+    "addCustomValue": "Tambah Nilai Kustom",
+    "valueName": "Nama Nilai",
+    "valueDescription": "Deskripsi Nilai"
   },
   "child": {
     "hello": "Halo",
