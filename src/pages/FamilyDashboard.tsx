@@ -385,22 +385,22 @@ export default function FamilyDashboard() {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Dashboard</span>
+              <span className="hidden sm:inline">{t('dashboard.overview')}</span>
             </TabsTrigger>
             <TabsTrigger value="children" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Anak-Anak</span>
+              <span className="hidden sm:inline">{t('dashboard.children')}</span>
             </TabsTrigger>
             <TabsTrigger value="safety" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Keamanan</span>
+              <span className="hidden sm:inline">{t('dashboard.security')}</span>
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Laporan</span>
+              <span className="hidden sm:inline">{t('dashboard.reports')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -411,7 +411,7 @@ export default function FamilyDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Anak</p>
+                      <p className="text-sm font-medium text-muted-foreground">{t('dashboard.totalChildren')}</p>
                       <p className="text-2xl font-bold">{children.length}</p>
                     </div>
                     <Users className="h-8 w-8 text-primary" />
@@ -423,7 +423,7 @@ export default function FamilyDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Waktu Hari Ini</p>
+                      <p className="text-sm font-medium text-muted-foreground">{t('dashboard.todayTime')}</p>
                       <p className="text-2xl font-bold">
                         {childSessions.reduce((sum, s) => sum + s.duration_minutes, 0)} min
                       </p>
@@ -437,8 +437,8 @@ export default function FamilyDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Status Keamanan</p>
-                      <p className="text-2xl font-bold text-green-600">Aman</p>
+                      <p className="text-sm font-medium text-muted-foreground">{t('dashboard.safetyStatus')}</p>
+                      <p className="text-2xl font-bold text-green-600">{t('dashboard.safe')}</p>
                     </div>
                     <Shield className="h-8 w-8 text-green-600" />
                   </div>
@@ -449,7 +449,7 @@ export default function FamilyDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Notifikasi</p>
+                      <p className="text-sm font-medium text-muted-foreground">{t('dashboard.notifications')}</p>
                       <p className="text-2xl font-bold">{notifications.length}</p>
                     </div>
                     <Bell className="h-8 w-8 text-primary" />
@@ -464,10 +464,10 @@ export default function FamilyDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    Anak-Anak
+                    {t('dashboard.children')}
                   </CardTitle>
                   <CardDescription>
-                    Status aktivitas dan keamanan hari ini
+                    {t('dashboard.todayActivitySafety')}
                   </CardDescription>
                 </CardHeader>
                  <CardContent className="space-y-4">
@@ -489,10 +489,10 @@ export default function FamilyDashboard() {
                        </Avatar>
                        <div>
                          <p className="font-medium group-hover:text-primary transition-colors">{child.first_name}</p>
-                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                           <Clock className="h-3 w-3" />
-                           {todayUsage}/{child.daily_limit_min} menit hari ini
-                         </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {todayUsage}/{child.daily_limit_min} {t('dashboard.minutesToday')}
+                          </div>
                        </div>
                      </div>
                      <div className="flex items-center gap-2">

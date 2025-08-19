@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,9 +12,11 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Shield, Bell, Clock, Phone, Users, Smartphone, Eye, AlertTriangle } from 'lucide-react';
 import SafetyDashboard from '@/components/SafetyDashboard';
+import { LanguageToggle } from '@/components/LanguageToggle';
 
 export default function ParentSettings() {
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [settings, setSettings] = useState({
     contentFilter: true,
@@ -51,11 +54,12 @@ export default function ParentSettings() {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Kembali ke Dashboard
+              {t('settings.backToDashboard')}
             </Button>
             
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-800">Pengaturan Orang Tua</h1>
+              <LanguageToggle />
+              <h1 className="text-xl font-bold text-gray-800">{t('settings.parentSettings')}</h1>
               <img 
                 src="/lovable-uploads/3c6d677b-f566-47d7-8a38-d8f86401741b.png" 
                 alt="Kaka Logo" 
@@ -69,10 +73,10 @@ export default function ParentSettings() {
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="safety" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-white/80 shadow-lg">
-            <TabsTrigger value="safety">Keamanan</TabsTrigger>
-            <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-            <TabsTrigger value="schedule">Jadwal</TabsTrigger>
-            <TabsTrigger value="account">Akun</TabsTrigger>
+            <TabsTrigger value="safety">{t('settings.security')}</TabsTrigger>
+            <TabsTrigger value="monitoring">{t('settings.monitoring')}</TabsTrigger>
+            <TabsTrigger value="schedule">{t('settings.schedule')}</TabsTrigger>
+            <TabsTrigger value="account">{t('settings.account')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="safety" className="space-y-6">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChildMode } from '@/components/ChildModeContext';
 import { useDemoMode } from '@/hooks/useDemoMode';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ import { toast } from 'sonner';
 export default function ChildHome() {
   const { currentChild, exitChildMode, isChildMode, autoLogoutMinutes, lastActivity } = useChildMode();
   const { isDemoMode, demoData, exitDemo } = useDemoMode();
+  const { t } = useTranslation();
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [pin, setPin] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
@@ -45,48 +47,48 @@ export default function ChildHome() {
   const activities = [
     {
       id: 'chat',
-      title: 'Chat dengan Kaka',
-      description: 'Bicara dan belajar bersama Kaka',
+      title: t('child.chatWithKaka'),
+      description: t('child.askKakaAnything'),
       icon: MessageCircle,
       color: 'from-blue-400 to-blue-600',
       action: () => navigate('/chat')
     },
     {
       id: 'stories',
-      title: 'Cerita Nusantara',
-      description: 'Dengarkan cerita rakyat Indonesia',
+      title: t('child.nusantaraStories'),
+      description: t('child.listenFolktales'),
       icon: BookOpen,
       color: 'from-green-400 to-green-600',
       action: () => navigate('/activities?tab=stories')
     },
     {
       id: 'games',
-      title: 'Permainan Edukatif',
-      description: 'Bermain sambil belajar',
+      title: t('child.educationalGames'),
+      description: t('child.playLearnCulture'),
       icon: Gamepad2,
       color: 'from-purple-400 to-purple-600',
       action: () => navigate('/activities?tab=games')
     },
     {
       id: 'songs',
-      title: 'Lagu Anak Indonesia',
-      description: 'Bernyanyi lagu-lagu tradisional',
+      title: t('child.indonesianChildrenSongs'),
+      description: t('child.singTraditionalSongs'),
       icon: Music,
       color: 'from-pink-400 to-pink-600',
       action: () => navigate('/activities?tab=songs')
     },
     {
       id: 'drawing',
-      title: 'Menggambar & Mewarnai',
-      description: 'Berkreasi dengan warna',
+      title: t('child.drawingColoring'),
+      description: t('child.createTraditionalArt'),
       icon: Palette,
       color: 'from-yellow-400 to-orange-500',
       action: () => navigate('/activities?tab=drawing')
     },
     {
       id: 'geography',
-      title: 'Jelajahi Indonesia',
-      description: 'Kenali provinsi dan budaya',
+      title: t('child.exploreIndonesia'),
+      description: t('child.knowDiversityArchipelago'),
       icon: Globe,
       color: 'from-indigo-400 to-indigo-600',
       action: () => navigate('/activities?tab=geography')

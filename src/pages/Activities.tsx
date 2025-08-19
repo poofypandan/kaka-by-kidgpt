@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useChildMode } from '@/components/ChildModeContext';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +11,7 @@ import { ArrowLeft, BookOpen, Gamepad2, Music, Palette, Globe, Play, Star, Heart
 export default function Activities() {
   const [searchParams] = useSearchParams();
   const { currentChild, isChildMode } = useChildMode();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const defaultTab = searchParams.get('tab') || 'stories';
 
@@ -227,11 +229,11 @@ export default function Activities() {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Kembali
+              {t('child.back')}
             </Button>
             
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-800">Aktivitas Seru</h1>
+              <h1 className="text-xl font-bold text-gray-800">{t('child.funActivities')}</h1>
               <img 
                 src="/lovable-uploads/3c6d677b-f566-47d7-8a38-d8f86401741b.png" 
                 alt="Kaka Logo" 
@@ -247,23 +249,23 @@ export default function Activities() {
           <TabsList className="grid w-full grid-cols-5 bg-white/80 p-1 rounded-xl shadow-lg">
             <TabsTrigger value="stories" className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Cerita</span>
+              <span className="hidden sm:inline">{t('child.stories')}</span>
             </TabsTrigger>
             <TabsTrigger value="games" className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white">
               <Gamepad2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Game</span>
+              <span className="hidden sm:inline">{t('child.games')}</span>
             </TabsTrigger>
             <TabsTrigger value="songs" className="flex items-center gap-2 data-[state=active]:bg-pink-500 data-[state=active]:text-white">
               <Music className="h-4 w-4" />
-              <span className="hidden sm:inline">Lagu</span>
+              <span className="hidden sm:inline">{t('child.songs')}</span>
             </TabsTrigger>
             <TabsTrigger value="drawing" className="flex items-center gap-2 data-[state=active]:bg-yellow-500 data-[state=active]:text-white">
               <Palette className="h-4 w-4" />
-              <span className="hidden sm:inline">Seni</span>
+              <span className="hidden sm:inline">{t('child.art')}</span>
             </TabsTrigger>
             <TabsTrigger value="geography" className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white">
               <Globe className="h-4 w-4" />
-              <span className="hidden sm:inline">Geografi</span>
+              <span className="hidden sm:inline">{t('child.geography')}</span>
             </TabsTrigger>
           </TabsList>
 
