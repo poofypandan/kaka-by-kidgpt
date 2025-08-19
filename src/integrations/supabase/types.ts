@@ -752,6 +752,87 @@ export type Database = {
         }
         Relationships: []
       }
+      subscribers: {
+        Row: {
+          children_limit: number | null
+          created_at: string
+          email: string
+          id: string
+          last_message_reset_date: string | null
+          messages_used_current_month: number | null
+          monthly_messages_limit: number | null
+          parent_accounts_limit: number | null
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          children_limit?: number | null
+          created_at?: string
+          email: string
+          id?: string
+          last_message_reset_date?: string | null
+          messages_used_current_month?: number | null
+          monthly_messages_limit?: number | null
+          parent_accounts_limit?: number | null
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          children_limit?: number | null
+          created_at?: string
+          email?: string
+          id?: string
+          last_message_reset_date?: string | null
+          messages_used_current_month?: number | null
+          monthly_messages_limit?: number | null
+          parent_accounts_limit?: number | null
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscription_usage: {
+        Row: {
+          child_id: string | null
+          created_at: string
+          id: string
+          usage_count: number | null
+          usage_date: string
+          usage_type: string
+          user_id: string | null
+        }
+        Insert: {
+          child_id?: string | null
+          created_at?: string
+          id?: string
+          usage_count?: number | null
+          usage_date?: string
+          usage_type: string
+          user_id?: string | null
+        }
+        Update: {
+          child_id?: string | null
+          created_at?: string
+          id?: string
+          usage_count?: number | null
+          usage_date?: string
+          usage_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           auth_user_id: string
@@ -793,6 +874,10 @@ export type Database = {
         }
         Returns: string
       }
+      check_subscription_limits: {
+        Args: { p_limit_type: string; p_user_id: string }
+        Returns: Json
+      }
       create_child_profile: {
         Args: {
           p_birthdate: string
@@ -825,6 +910,10 @@ export type Database = {
           p_parent_phone: string
         }
         Returns: string
+      }
+      reset_monthly_message_counters: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
