@@ -158,6 +158,51 @@ All colors MUST be HSL.
   }
 }
 
+/* Emotional Kaka animations */
+@keyframes gentle-breathe {
+  0%, 100% { transform: scale(1) translateZ(0); }
+  50% { transform: scale(1.015) translateZ(0); }
+}
+
+@keyframes thinking-process {
+  0%, 100% { transform: rotate(-2deg) scale(0.98); }
+  50% { transform: rotate(2deg) scale(1.02); }
+}
+
+@keyframes breath-dot {
+  0%, 100% { opacity: 0.5; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes encouraging-appear {
+  0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ready-to-send {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes voice-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+}
+
+/* Animation delay utilities */
+.animate-delay-600 {
+  animation-delay: 0.6s;
+}
+
+.animate-delay-1200 {
+  animation-delay: 1.2s;
+}
+
 @keyframes sway {
   0%, 100% { 
     transform: rotate(-2deg); 
